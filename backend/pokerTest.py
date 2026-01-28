@@ -39,7 +39,7 @@ def run_test_game():
     # Register 2 bots and 1 human (you)
     config.register_player(name="Bot_1", algorithm=FishPlayer())
     config.register_player(name="Bot_2", algorithm=FishPlayer())
-    config.register_player(name="Human_Dan", algorithm=ConsolePlayer())
+    config.register_player(name="Human", algorithm=ConsolePlayer())
     
     game_result = start_poker(config, verbose=1)
     print("\n--- Final Tournament Standings ---")
