@@ -10,4 +10,12 @@ source venv/bin/activate
 pip install fastapi uvicorn ollama langchain langchain-community chromadb pysqlite3-binary
 # Install poker logic engine
 pip install PyPokerEngine
-# Create a starting file
+
+
+# TODO:
+- Get rest of books
+- Create chunks from books
+- Get gemini API's set up for everyone
+- Build out frontEnd
+- Build out docs
+- Build out Backend
