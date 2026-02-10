@@ -13,9 +13,9 @@ pip install PyPokerEngine
 
 
 # TODO:
-- Get rest of books
-- Create chunks from books
+- Handle Books and chunk generation: Dan
 - Get gemini API's set up for everyone
-- Build out frontEnd
+- Build out frontEnd: JC and Alex
 - Build out docs
 - Build out Backend
+- VectorDB: Srihari and Dylan
