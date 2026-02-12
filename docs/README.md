@@ -44,10 +44,10 @@ PokerSimulator/
 
 ## Documentation
 
-- [Getting Started](docs/getting-started.md) — Installation, env vars, first run
-- [Architecture](docs/architecture.md) — System design and data flow
-- [API Reference](docs/api.md) — REST endpoints
-- [Development Guide](docs/development.md) — Local dev, data format, debugging
+- [Getting Started](./getting-started.md) — Installation, env vars, first run
+- [Architecture](./architecture.md) — System design and data flow
+- [API Reference](./api.md) — REST endpoints
+- [Development Guide](./development.md) — Local dev, data format, debugging
 
 ## Environment Variables
 
