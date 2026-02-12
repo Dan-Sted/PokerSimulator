@@ -4,25 +4,7 @@ Tips and conventions for local development on PokerSimulator.
 
 ## Running Locally
 
-### Backend
-
-```bash
-cd backend
-source venv/bin/activate   # or venv\Scripts\activate on Windows
-uvicorn main:app --reload
-```
-
-`--reload` enables auto-restart on code changes.
-
-### Frontend
-
-```bash
-cd frontend
-npm run dev
-```
-
-Vite provides hot module replacement (HMR) for fast feedback.
-
+see [Getting Started](getting-started.md)
 ## Data Format
 
 ### RAG input structure
@@ -93,7 +75,6 @@ pip install pysqlite3-binary
 - Get Gemini API's set up for everyone
 - Build out Frontend
 - Build out Backend
-- VectorDB integration in `/play-turn`
 
 ## Testing
 

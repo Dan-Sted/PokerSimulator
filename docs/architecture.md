@@ -4,25 +4,31 @@ This document describes the system design and data flow of PokerSimulator.
 
 ## High-Level Overview
 
-```
-┌─────────────────┐     HTTP      ┌──────────────────────────────────────────┐
-│                 │  ─────────►   │  Backend (FastAPI)                        │
-│   React         │               │  ┌─────────────┐  ┌─────────────────────┐ │
-│   Frontend      │  ◄─────────   │  │ /play-turn  │  │ ChromaDB (VectorDB) │ │
-│   (Vite)        │    JSON       │  │ endpoint    │──│ RAG retrieval       │ │
-└─────────────────┘               │  └──────┬──────┘  └─────────────────────┘ │
-                                  │         │                                 │
-                                  │         ▼                                 │
-                                  │  ┌─────────────┐  ┌─────────────────────┐ │
-                                  │  │ PokerAgent  │  │ Gemini 2.0 Flash    │ │
-                                  │  │ (LLM)       │──│ Move generation     │ │
-                                  │  └─────────────┘  └─────────────────────┘ │
-                                  └──────────────────────────────────────────┘
-                                                    │
-                                                    ▼
-                                  ┌──────────────────────────────────────────┐
-                                  │  PyPokerEngine (game rules & flow)       │
-                                  └──────────────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as 👤 User (React)
+    participant B as ⚡ Backend (FastAPI)
+    participant D as 📚 ChromaDB (RAG)
+    participant A as 🤖 PokerAgent
+    participant G as ✨ Gemini 2.0
+    participant E as ⚙️ PyPokerEngine
+
+    Note over U,B: Turn Start
+    U->>B: POST /play-turn (Game State)
+    B->>A: Activate Agent
+    
+    rect rgb(240, 248, 255)
+        Note right of A: Decision Phase
+        A->>D: Retrieve similar hands
+        D-->>A: Context (Historical Data)
+        A->>G: Prompt (State + Context)
+        G-->>A: Suggested Move
+    end
+    
+    A->>E: Validate & Execute Move
+    E-->>B: Updated Game State
+    B-->>U: JSON Response (New State)
 ```
 
 ## Components

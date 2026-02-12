@@ -38,7 +38,6 @@ venv\Scripts\activate.bat
 ```bash
 pip install fastapi uvicorn python-dotenv google-genai
 pip install langchain langchain-community langchain-google-genai langchain-text-splitters
-pip install chromadb pysqlite3-binary
 pip install PyPokerEngine
 ```
 
@@ -78,7 +77,7 @@ npm install
 npm run dev
 ```
 
-The frontend will be available at the URL shown in the terminal (typically `http://localhost:5173`).
+The frontend will be available at the URL shown in the terminal (typically `http://localhost:xxxx`).
 
 ## Ingesting Poker Knowledge (RAG)
 

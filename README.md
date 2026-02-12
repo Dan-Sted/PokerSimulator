@@ -25,6 +25,7 @@ uvicorn main:app --reload
 cd frontend
 npm install
 npm run dev
+To Be Continued....
 ```
 
 See [docs/getting-started.md](docs/getting-started.md) for detailed setup.
@@ -62,3 +63,4 @@ PokerSimulator/
 - Build out Frontend: JC and Alex
 - Build out Backend
 - VectorDB: Srihari and Dylan
+- Build out and preserve docs: Jacob
