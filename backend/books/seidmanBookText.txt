@@ -1,0 +1,1711 @@
+ 
+ 
+ 
+ 
+ 
+Easy Game 
+Making Sense of No Limit Hold ‘em 
+Vol. 1 
+ 
+ 
+Easy Game Vol. 1 is © 2009 Andrew Seidman, 
+except HU Play for Beginners, which is © 2009 Matt Colletta 
+ 
+ 
+
+2
+Table of Contents 
+Introduction .........................................................................................................................................................3 
+AGameofInformation .......................................................................................................................................5 
+ChapterOne:TheReasonsforBetting..............................................................................................................6 
+ChapterTwo:PreflopHandRangesandPostflopEquities..............................................................................9 
+ChapterThree:AggressionandtheTurn........................................................................................................11 
+ChapterFour:BetSizingandThinValue.........................................................................................................14 
+ChapterFive:PlayerIdentificationandBasicHandreading ..........................................................................16 
+ChapterSix:IsolationTheory...........................................................................................................................18 
+ChapterSeven:TableDynamics ......................................................................................................................20 
+ChapterEight:CreativePreflopRaiseSizes ....................................................................................................22 
+ChapterNine:ValueStreetsandPotManagement.......................................................................................24 
+ChapterTen:ShowdownTheory.....................................................................................................................26 
+ChapterEleven:MonotoneBoardsandEquity..............................................................................................28 
+ChapterTwelve:ABriefUnderstandingofG‐Bucks.......................................................................................29 
+ChapterThirteen:FullRingvs.6‐maxandPositionalProtection..................................................................30 
+ChapterFourteen:AnIntroductionto3‐BetPots..........................................................................................32 
+IntroductiontoHUPlay.....................................................................................................................................34 
+ChapterFifteen:HUPlayforBeginners ..........................................................................................................39 
+TheBasics:Conclusion .....................................................................................................................................46 
+
+3
+Introduction 
+
+There are a lot of books about poker, particularly about the game that has become a 
+modern phenomenon: No-Limit Texas Hold ’em.  The legend Doyle Brunson describes the game 
+as “the Cadillac of poker” because the nature of the game allows for so much creativity.  The 
+ability to bet any amount at any time makes the game both attractive and dangerous at once—
+unlike Limit games, where the wager is fixed and only a few bets can go in each round, in No-
+Limit all it takes is one big mistake and suddenly you’re out of a stack of chips. 
+ 
+The key word to focus on is “mistake.”  David Sklansky’s The Theory of Poker spells out 
+the Fundamental Theorem of Poker.  It says, essentially, that whoever makes the most (and 
+biggest) mistakes loses, and conversely whoever makes the least (and smallest) mistakes wins.  
+It’s incredible how many poker players—even good players, and some great ones—ignore this 
+concept and constantly make suboptimal plays.  We’ll talk about this in more detail later. 
+ 
+To understand this book, you’ll need to recognize some terminology.  While we’ll 
+discuss the important concepts in detail, we can define some simple terms first: 
+C-betting means continuation betting, or making a bet after being a preflop aggressor. 
+NL refers to No-Limit. 
+3-betting refers to making a third raise (preflop, the blinds are considered the first bet; thus, a 
+second bet is called a raise, and the third bet would be called a 3-bet.  4-betting, 5-betting, and so 
+on continue logically). 
+OOP means “out of position”, while IP refers to being “in position.” 
+c/f means check-fold (to check with the intention of folding to a bet).  
+c/r means check-raise (to check with the intention of raising a bet) 
+c/c means check-call (to check with the intention of calling a bet) 
+To Flat means to call a bet or raise (as opposed to reraising).   
+To Float means to call a flop bet with the intention of taking the pot away on a later street. 
+A Wet Board means a strongly coordinated board in which cards have some combination of 
+highness, suitedness, and connectedness. 
+A Dry Board means an uncoordinated board in which cards lack highness, suitedness, and/or 
+connectedness. 
+Implied Odds refers to our ability to win money once we’ve hit a hand (for example, 22 has 
+great implied odds with 200bb stacks, as it can win a lot if it flops a set of 2’s). 
+Reverse Implied Odds refers to our ability to lose money once we’ve hit a hand (for example, 
+KQ has high reverse implied odds when it flops a pair 200bb deep, but low reverse implied odds 
+when it flops a pair 30bb deep).   
+
+4
+ 
+This book will explain shorthanded No-Limit Hold ‘em to you in two steps—first, the 
+basic knowledge you will need to be a competent poker player and thinker.  Mastery of this 
+knowledge alone should be enough to earn you $100+ per hour in online or live games.  Second, 
+we will delve into advanced concepts that are the keystones to success at higher stakes.  Do not 
+skip straight to the second section. 
+ 
+In the modern age of poker instructional videos and websites, many small stakes players 
+watch their high stakes heroes using advanced moves and playing in unorthodox styles.  The 
+small stakes players then try to mimic these plays without understanding the vital framework of 
+knowledge that makes these moves profitable.  In short, if you skip straight to the second section, 
+it will probably cause you to lose money.   
+ 
+Now that we’re ready to get underway, just remember:  getting good at poker is about 
+learning and not winning.  Many players emphasize winning only, and their game stagnates.  
+They’re quickly passed by players who are focused on learning and view winning as a nice side 
+benefit.  And indeed it is.  Learning will occur one step at a time.  Each chapter will outline an 
+important poker concept—try to understand it before you move on to the next.  They’re building 
+blocks.  Give them your time and focus—you’ll be a better player in no time. 
+ 
+
+5
+THE BASICS 
+A Game of Information 
+
+ 
+At the very beginning of our poker experience, we have no idea what is happening 
+around us.  We don’t perceive information well.  In fact, we’re usually limited to two very basic 
+pieces of information—the cards in our hand and the cards on the board.  Other pieces of 
+information are completely lost to us—things like our opponents’ likely hand ranges, game-flow, 
+the effects of image, player types and tendencies, etc.  The point is this:  the more information a 
+player gathers and uses, the better he is at poker.  The less information a player gathers and uses, 
+the worse he is.  In the following chapters, we’ll talk about the ways to both gather and use 
+information—what to look for, what it means, and what to do in response.  The purpose of the 
+first section of this book is to outline basic game strategies and theories that should allow you to 
+deal comfortably with weaker players and will prepare you for playing against tougher, thinking 
+opponents.  Each concept builds upon the one before it, so Chapter One is the most important 
+chapter in this section.   
+ 
+Welcome to the world of aggressive, winning poker. 
+
+6
+Chapter One:  The Reasons for Betting 
+ 
+ 
+I hope you’re ready for this, because we’re about to define our entire poker existence.  
+It’s a simple word:  why?  Poor players never question their decisions.  Average players start to 
+ask themselves “why” but have wildly insufficient answers.  When I’m coaching students, this is 
+one of the first things I see that needs fixing.  A student makes a bet, and I ask him why he’s 
+betting.  Common answers include:  “I’m pretty sure I have the best hand,” “I’m gaining 
+information to see where I’m at,” or “I’m betting to protect my hand.”  The problem is that those 
+aren’t reasons for betting.  Things like information or protection may be side effects of betting, 
+but they’re not reasons.  So what are the reasons for betting?  There are only three.  In order to 
+justify a bet or raise at any time, we’ll need to rely on these three (and only these three) reasons.  
+We’ll deal with the first two first: 
+1) Value.  This is defined as betting to get called (or raised) by a worse hand.  Betting just 
+because you probably have the best hand is NOT sufficient to bet for value. 
+2) Bluff.  This is defined as betting to get a better hand to fold.  Betting just because you 
+can’t win any other way is NOT sufficient to bet as a bluff. 
+These two are pretty simple.  They rely on mistakes our opponents make—either calling too 
+much or folding too much.  It’s human nature to call too much.  We’re curious beings and we 
+want to see what the other guy holds, what the turn card will be, whether or not we hit our flush 
+on the river.   
+People are more inclined to make the mistake of calling too much than the mistake of folding 
+too much. 
+Therefore, reason #1 for betting will dominate our bets.  Value-betting is, was, and always 
+will be the best way to make money.  At a micro-stakes game, let’s say $25nl, nearly everyone at 
+the table will call absurdly often, so reason #2 for betting becomes more or less useless.  At 
+$5000nl, nearly everyone at the table will be good enough to avoid paying off your value bets 
+too often, and thus reason #1 decreases in utility and reason #2 becomes more important.  In 
+general, though, even regulars at high stakes games are more likely to make bad calls than bad 
+folds as a general rule. 
+So what about c-betting?  Let’s say we raised KQo on the button, and the big blind (a loose, 
+passive player who won’t fold ANY pair on the flop) calls us.  The flop comes down A75r.  He 
+checks to us.  This is a very standard bet.  Why? 
+Hmm.  We can’t get called by any worse hands (QJ isn’t coming along for the ride).  Even a 
+hand like 86 is roughly a coin-flip against us in terms of equity.  So we can’t bet for value.  
+Sticking with our assumption that he’s not folding any pairs, we can’t bet as a bluff either as we 
+have the best non-pair hand possible.  Yet we still bet.  Why? 
+3) Capitalization of Dead Money.  This is defined as making the opponent fold, whether his 
+hand is better or worse, and collecting the money in the pot. 
+This is obviously a fair amount trickier than reasons #1 or #2.  What makes this 
+mysterious third reason work? 
+
+7
+a) We make him fold his equity share in the pot.  On the A75 flop where we hold KQ, if 
+the opponent holds JT, his six-outer still has a strong amount of equity to draw out.  
+Making him fold that equity share is good. 
+(One exception would be if the villain is likely to bluff AND our hand is strong 
+enough to call a potential bluff.  On this A75 board, if we check behind on the flop, 
+villain is likely to check all of his air-type hands and bet all of his pair-or-better 
+hands.  Thus, villain is unlikely to bluff and our hand isn’t strong enough to be a bluff 
+catcher, so we can’t check behind.  More on this concept later in the section titled 
+“Showdown Theory.”) 
+b) The dead money more than compensates for the times when we’re called and lose.  I 
+was playing at a high stakes table with a very famous, extremely loose-aggressive 
+player named Cole.  He was deepstacked in the CO, covered by the Button.  Cole 
+raised, the Button 3-bet, he 4-bet, the Button 5-bet, and he shoved all-in.  The Button 
+folded, and Cole showed T9o.  Cole obviously wasn’t raising all-in for value (hard to 
+get called by nine-high).  Nor could he be confident about making the Button fold 
+anything good, as Cole is famously loose and aggressive—nobody folds anything 
+good to Cole.  Yet he still raised.  Why?  After the button 5-bets, there is a TON of 
+dead money in the pot.  Cole only needs the Button to fold  a relatively small 
+percentage to make the shove correct 
+As games get more aggressive, more people are bluffing and putting money in with 
+weaker hands.  That equates to the presence of more dead money in the pot.  In small stakes 
+games, c-betting may be the extent of your reason #3 betting (as in KQ on an A75 board).  This 
+is because people rarely get out of line and make plays without some kind of hand.  In higher 
+stakes, more aggressive games, you’ll need to capitalize on dead money if you want to turn a 
+profit. 
+Additionally, reason #3 is rarely (possibly never) a primary reason for betting.  Often 
+times it is used as a complimentary reason for reasons #1 and #2.  For example, let’s say we have 
+the nut flush draw on a T♠8♠4♣K♣ board and we decide to bet the turn.  Well, we’re betting for 
+reason #2, hoping for him to fold a hand like JT or A8.  He may have a worse hand, such as a 
+worse flush draw, which we don’t want him to fold necessarily.  However, the fact that there is 
+money in the pot, and we might get him to fold a hand like JT means that it’s not so bad for him 
+to fold a worse hand.  Another example might be a situation where we have KT and the board is 
+T♠6♠5♣J♣.  Betting again might be slightly too thin (more explanation of this in the section 
+titled “Bet Sizing and Thin Value”).  However, getting him to fold straight draws, flush draws, 
+and random floats is good for us, especially if we think he usually takes a free card with his 
+draws if we check. 
+In general, dead money compensates for the “thinness” of either reason #1 or reason #2.  
+For example, a bluff might be too thin (i.e. villain calls us too often) when the pot is 50bb.  
+However, if the pot were 100bb, a bluff has more value because there’s more dead money to 
+make.  Similarly, a thin value bet might be too thin with a small pot size, but with a larger pot the 
+dead money compensates.  In this sense, we’re always betting for reason #1 or reason #2, but 
+reason #3 is always involved.  Even when we raise preflop, we’re either raising as a bluff or for 
+value, but our raise is compensated by the dead money—dead money that we call “the blinds.” 
+
+8
+So what about protection?  Is this not a reason for betting?   
+The answer is no—protection is a consequence of betting.  Let’s say our hand is red QQ 
+on a Q♠T♠9♣ board.  We bet for value—there are many worse hands that will call or raise us.  
+The fact that we’re charging draws and “protecting” is nice, but it’s hardly the original 
+motivation for our bet.  Now let’s say we hold 6♥6♦ on a Q♥9♥3♣ board.  We can bet there to 
+collect dead money, but we’re hardly “protecting.”  Most draws are either 50/50 against us or are 
+a significant favorite (A♥J♥ comes to mind).  The moral of the story is that when we have a set 
+of Queens, our hand needs protection, but it needs value first and foremost.  When we have a 
+pair of sixes, our hand doesn’t really need protection because it’s not very strong.  All we have is 
+a pair of sixes.  It seems pretty dumb to protect ourselves from A♥J♥ when A♥J♥ is a favorite 
+over us.  Instead, we might bet 66 on the Q♥9♥3♣ board as a thin bluff (against hands like 77 or 
+88) or for thin value (against a hand like A♥4♥), but mostly to collect dead money against a hand 
+like A♣T♣ that will fold its 6-outer on the flop. 
+What about information?  Let’s say we have QJ on a QT5r board against a very loose-
+passive player.  We bet for value.  If he calls, we have the information that our hand is probably 
+best and we can keep betting for value.  If he raises, we have the information that our hand is 
+behind his range and we should fold.  However, the bet is still good even if that happens, because 
+it was for value.  The real problem with betting for information occurs when someone bets a 
+hand like KK on an A22 board.  Well, every time we’re called we’re behind, so we lose some 
+money (more on this later).  Every time he folds we were ahead.  He plays perfectly.  And, if 
+he’s not making any mistakes, we’re not making any money.  If we’re betting for information 
+instead of one of the three reasons, we’re usually isolating ourselves with better hands and 
+folding out worse hands.  In short, we’re making mistakes and our opponent isn’t.  And that’s 
+bad. 
+However, let’s consider the KK on A22 example again.  Let’s start with a two 
+assumptions: 1) if we bet, villain never calls with a worse hand, and 2) if we check, villain 
+NEVER bluffs.  In this case, it may still be correct to bet to collect dead money.  Let’s say that 
+villain holds a hand like 44.  If he’s never bluffing when we check, we’re simply giving him 
+infinite odds to catch his 4.  So, betting to make 44 fold there is a good thing, because we make 
+him fold his equity share in a spot where he only puts money in the pot when he’s value betting.  
+Obviously, these two assumptions are never this concrete—sometimes we can bet KK for value 
+on an A22 board against smaller pairs, and sometimes our villain will bluff us like crazy if we 
+check.  But, we need to remain conscious of dead money as it applies to these types of situations. 
+So now we have the three reasons.  Any time you’re betting, ask yourself, “Why am I 
+betting?” Once you realize that there are only three answers, poker will suddenly make a lot 
+more sense. 
+ 
+
+9
+Chapter Two:  Preflop Hand Ranges and Postflop Equities 
+
+ 
+Preflop is undoubtedly the easiest street to play.  The variables are greatly reduced—only 
+two cards per person are in play.  Unlike postflop where situations become extremely complex 
+and difficult, preflop seems easiest to deal with.  Yet, every student I’ve ever coached has begun 
+with one major preflop leak—they’re not thinking about postflop.  To the average poker thinker, 
+preflop is a vacuum, in which we can raise K2o on the button because our hand is stronger than 
+the range of the blinds.   
+How about this:  If preflop were a vacuum, it would be profitable to raise 100% of your 
+hands on the button.  The dead money from when the blinds fold would easily compensate for 
+raising 72o.  So, why don’t we raise 100% on the button?  Oh that’s right… 72o is terrible 
+postflop.  K2o isn’t too far behind.  
+ 
+One of the most common requests I hear is for help with won-money-without-showdown 
+stats.  The difficulty most players have with making money without going to showdown stems 
+from their inability to play a well-formulated preflop game that is cohesive with their overall 
+postflop strategy.  There is a gap between their preflop plan and their postflop plan.  In short, 
+they’re not thinking about equity.  Let’s explain. 
+ 
+We hold K8o on the button.  Our initial thought is to raise because our range is ahead of 
+the blinds and we can collect dead money.  So let’s say we raise, and the big blind calls.  The 
+flop comes down 9♠7♦3♣.  The blind checks, we make a standard c-bet, and the blind calls.  The 
+turn card is the 2♠.  The blind checks again.  Boy-oh-boy do we have a conundrum.  If we check 
+it back, we’ll inevitably go to showdown with a weak hand and we’ll lose a decent pot.  Seems 
+pretty weak on our part.  Or, we could bet… but the turn card isn’t scary and he’s unlikely to fold 
+anything he called the flop with.  Betting is often overly aggressive chip-spewy.  The real 
+problem with the postflop spot starts all the way back preflop.  We chose a hand with poor 
+postflop equity and thus we walk into unprofitable spots—situations where there’s simply 
+nothing we can do right.  There’s an easy solution though:  choose hands that have good postflop 
+equity. 
+What kind of cards are these? 
+1) Suited cards are a good place to start.  Suited cards have great postflop equity.  When I 
+say this, most people’s immediate reaction is to tell me that suited cards only make a 
+flush a small percentage of the time.  That’s true, but let’s think about it in terms of 
+equity: 
+ On the left we have A♠6♠.  On the right we have A♠6♣.  We raise the button 
+preflop, and the big blind calls again.  The flop comes down 9♠7♠3♠.  With A♠6♠ 
+we have 100% equity, compared with about 50% with A♠6♣.  About a 50% equity 
+differential.  That’s significant. 
+ But come on, how often do we really flop a flush anyway?  Agreed… let’s change 
+the flop then—9♠7♠3♣.  On the left now we have 50% equity, compared with 
+about 15% on the right.  A 35% differential… that’s significant as well. 
+ Most importantly, though, let’s consider a flop of 9♠7♦3♣.  We bet and are called.  
+The turn is a Q♠.  A6s now has 12 outs.  A6o has 3.  Now, with the extra equity, we 
+
+10
+can stay aggressive.  Thus, unlike A6o (where we have to choose between being 
+weak or spewy) we can be appropriately aggressive with A6s.  We’ll talk about this 
+more in the next chapter. 
+2) High cards also have great equity.  Let’s consider AQo.  If we flop an A or Q, we usually 
+have the best hand.  However, on the vast majority of flops we miss, we are guaranteed 
+six overcard outs.  Often, that’s enough equity to continue aggression. 
+3) Connecting cards provide equity as well, although not as significantly as suited or high 
+cards.  They do have advantages, as straights are among the most disguised hands in 
+poker, but they have plenty of disadvantages as well.  If there is a flush draw on the 
+board, a straight draw’s outs may be tainted.  A straight draw has only 8 outs compared 
+with a flush draw which has 9, or the nut flush draw which sits with 12.  If we turn a 
+straight draw, usually it’s a card that makes the board more coordinated and thus harder 
+to stay aggressive on.  An example would be JT on a K75Q board.  The draw is nice, but 
+we probably won’t be able to stay aggressive on such a strong turn card for our 
+opponent’s range (KQ comes to mind).  A better example, though, might occur if the 
+board was even lower and less frightening—say we hold JT on a 964r board and the turn 
+is an 8.  That’s a very difficult spot for us to continue aggression despite our hand’s 
+strong equity. 
+In understanding all of this, we see that hands like A3s are extremely strong, mixing suited 
+value, high card value, and connecting value.  In fact, A2s-A5s are generally stronger than A6s-
+A9s, as the extra connecting card value usually more than compensates for the extra high card 
+value (i.e. a six kicker isn’t much better than a 5 kicker, but a straight or straight draw is a whole 
+lot better than nothing).  Hands like 76s are strong as well, despite having no high card value.  So 
+are hands like KJo, despite having no suited value.   
+ 
+Aggression comes with a lot of advantages: we win bigger pots with our strong hands, we 
+make our opponents fold the best hand, we collect dead money constantly, and it makes it 
+difficult for our opponents to read our hand.  Now that we know which cards put us in spots that 
+let us stay aggressive, we can start to consider common spots where we have equity and want to 
+keep applying pressure. 
+ 
+
+11
+Chapter Three:  Aggression and the Turn 
+ 
+ 
+Let’s put ourselves back with A♠6♠ on the 9♠7♦3♣Q♠ board.  This is an ideal time to 
+continue our aggression.  Why?   
+The turn card is ideal for us in many ways.  First, it gives us extra pot equity—we now 
+have twelve outs as opposed to three (as with A6o).  Secondly, the Queen is an uncoordinated 
+overcard to the board, giving us extra fold equity—the opponent is going to be more wary about 
+continuing with a hand like 88.  This combination of pot equity and fold equity is mandatory for 
+us to stay aggressive on the turn.  Here’s a little equation to (over)simplify things a little: 
+POT EQUITY+FOLD EQUITY=AGGRESSION 
+Sometimes we’ll have so much pot equity that we won’t need much fold equity.  Let’s 
+say, for example, that we have Q♥J♥ on a T♥9♥2♣4♦ board.  We draw out so often on the river 
+that we only need our opponent to fold a very low percentage of the time for a 2nd barrel to be 
+profitable.  On the other hand, let’s give ourselves 22 on an 843Ar board.  The Ace on the turn 
+gives us so much fold equity that our lack of pot equity (2 outs) is compensated by the fact that 
+the opponent folds an extremely high percentage of the time.  Most spots, though, aren’t as cut-
+and-dried.  What if we have A♠5♠ on a 9♠7♦3♣T♠ board?  Our pot equity is good, but the turn 
+card actually decreases our fold equity, as it hits a lot of the opponent’s range.  Even a hand like 
+88 is unlikely to fold to a turn bet because it picks up a straight draw.  It’s the job of the poker 
+player to weigh his own pot equity and fold equity to make these decisions in close spots. 
+ 
+Once we’ve ascertained that we have a sufficient combination of pot equity and fold 
+equity, we can continue our aggression.  Usually this just means that we continue betting, as that 
+would usually be our plan if we actually had a strong hand instead of our draw.  However, in 
+some situations it is better to go for a check-raise on the turn.  What sorts of factors favor a 
+check-raise over a second barrel? 
+1) It’s unlikely our opponent holds a strong hand.  For example, say we hold A♣5♣.  If 
+we bet a wet flop—let’s say 8♣7♣4♥—and our opponent calls, we can usually be 
+certain he doesn’t have really powerful hand (like 88, 77, 44, 65, or 87) as he would 
+usually raise these hands.  Most of his range for calling probably includes: hands like 
+T9, J9, and A5 for straight draws; hands like 86, 76, and 55 for pairs and gutshot 
+straight draws; hands like A8 or 97 for weak pairs; hands like Q♣J♣ or K♣T♣ for 
+flush draws, and hands like AJ or KQ that called simply with the intention of taking 
+the pot away on the turn.  To categorize these hands respectively, our opponent holds 
+straight draws, pair+draws, weak pairs, flush draws, and air.  Each of these hands are 
+“floating” the flop, with the last category being considered more “pure floats” as they 
+lack any pair or strong draw. 
+2) It’s likely that our opponent will bet a wide, weak range on the turn.  The turn card 
+comes a 2♦, making the board 8♣7♣4♥2♦.  Let’s consider our opponent’s likely 
+action with his range after we check the turn.  With his straight draws, flush draws, 
+and air, he’s going to bet the vast majority of the time—simply because betting is the 
+most likely way he’s going to win the pot.  He’s likely to check his weak pairs and 
+
+12
+pair+draw hands behind, as he’ll probably want to get to showdown with his weak 
+pair.   
+Therefore, when he bets the turn, the vast majority of his range is very weak, and now the 
+pot is very large.  So, this becomes a good time for us to check-raise the turn as a semibluff, and 
+of course, for reason #3, capitalization of dead money.  Sometimes, our opponent will be tricky 
+on the flop with a hand like 65 and just call the flop.  Other times, the turn card will help our 
+opponent in a disguised way.  Sometimes our opponent will hold a hand like TT, 99, A8, or 86 
+and decide to bet the turn and get the money in if we check-raise.  To compensate for these 
+possibilities, we need to make sure we have some equity before making this move.  Thus, A♣5♣ 
+on a 8♣7♣4♥2♦ board is perfect, as we have a ton of equity.  A♣J♣ would be fine as well.  
+K♦Q♥ probably wouldn’t be as good of an idea. 
+Board texture is critical in understanding when to bet out and when to check-raise.  If our 
+opponent flat calls a wet board, his range generally doesn’t include monster hands like sets, two 
+pairs, and straights.  However, if our opponent calls on a dry board (let’s say 8♣6♦4♥) check-
+raising the turn gets significantly worse. With fewer draws available, a large portion of his turn-
+betting range now includes slow-played sets, two-pairs, and straights.  If I had A♣5♣ on an 
+8♣6♦4♥2♣ board, I’d almost certainly bet the turn again and plan on folding to a raise as 
+opposed to check-raising. 
+Evaluating pot equity is easy: we look at how many outs we have, and through simple 
+memorization, we know that the nut flush draw usually has between 40 and 50 percent equity.  A 
+gutshot has about 18% equity on the flop.  Pretty simple.  Evaluating fold equity, on the other 
+hand, can be a lot more difficult.  What factors affect our fold equity? 
+1) Player type.  This is by far the most significant factor in evaluating fold equity.  
+Against a bad player (whether passive-bad or aggressive-bad), our fold equity is 
+greatly reduced, simply because they won’t fold very much of anything.  The 
+response is easy—we have a wider value bet range, but we can’t continue aggression 
+with weak hands that rely on fold equity. 
+2) Board Texture.  This, as we just discussed, is vital to understanding fold equity.  If, 
+on a 983r flop, an A lands on the turn, our fold equity will increase.  If a T peels off 
+on the turn instead, our fold equity is decreased.  This part is easy to read as well—
+overcards increase fold equity, but low cards and coordinating cards don’t. 
+3) Number of players.  This is an obvious one.  If there are more hands in play, there are 
+more cards that could’ve connected with the board, and thus our fold equity goes 
+down.   
+4) Image and Perceived Hand Range.  We’ll go into this in greater detail in the advanced 
+section, but if we have a loose and bluffy history, our fold equity decreases.  If we 
+have a tight, solid history, our fold equity increases.  This is because our perceived 
+hand range becomes either weaker or stronger. 
+Sometimes, these reasons play against each other.  The board might be very scary on the 
+turn when an Ace falls, but the player type is loose-passive and thus we shouldn’t continue our 
+aggression.  Other times, we’ll be in a multiway pot, but the board will be dry and they’ll both be 
+
+13
+tight players, so we’ll want to be aggressive.  It’s the job of the poker player to balance these 
+factors. 
+ 
+
+14
+Chapter Four:  Bet Sizing and Thin Value 
+ 
+ 
+Now we have a general idea of when and why to stay aggressive—pot equity and fold equity.  
+So, when we are betting, how large should our bets be?  In No Limit Hold ’em we have a lot of 
+options.   
+ 
+For a while, there was a standard mantra for bet sizing. The accepted standard was to 
+make a pot-sized bet on the flop, between 2/3 and 3/4 pot on the turn, and between 1/2 and 2/3 
+on the river.  The assumption behind these bet sizes, particularly the river, was that a smaller bet 
+would be called more often than a larger bet.  The classic “don’t want to scare him away” 
+thinking.  This is dumb. 
+ 
+Most players make the decision whether or not to call, raise, or fold based off two main 
+considerations: 
+1) Their cards.  Most players won’t fold AA on a JT9 board when facing a ton of action 
+because hey, they’ve got aces—even though they’re relatively unlikely to be ahead. 
+2) The board texture.  QQ is likely to get a lot of money in as an overpair, but shuts 
+down as soon as an A or K falls.  
+The size of the bet facing them, in most scenarios, is a distant, distant third.  Obviously, if 
+we bet 2 dollars into a pot of 800, nobody is going to fold.  And, if we bet 800 dollars into a pot 
+of 2, nobody is going to call without the nuts.  However, let’s say the pot is 50.  If he’ll call a 35 
+dollar bet, what about a 36 dollar bet?  38?  42?  48?  Even if he is slightly less likely to call a 48 
+dollar bet than a 35 dollar bet, the extra money we make when he does call the larger bet more 
+than compensates for the additional times he calls the 35 dollar bet.  So, when we’re trying to get 
+value, bet bigger.   
+Sometimes, though, our value bets will be less cut-and-dried.  If we have JJ on a T54J5 
+board, it’s very easy to bet for value.  What if, on the same board, we have AT instead?  How 
+about T9?  In all three situations, it’s likely we have the best hand, and we may bet for value.  If 
+we bet with JJ, anything that calls us is worse so we can quite comfortably go for maximum 
+value.  With AT, some hands that would call our value bet are better (AJ, KJ, QJ, etc.), and some 
+are worse (KT, QT, T9, T8).  With T9, there are very few hands that are worse that could 
+potentially call a bet (T8, 99, 88).  So, if we bet large enough with T9 that our opponent is likely 
+to fold hands like 88, suddenly the bet becomes bad—we can’t get called by worse or fold out 
+better.  So, we need to choose a bet size that makes us sure he is still likely to call with worse.  
+So, I might bet very small with T9 on that board—possibly as small as 1/5 pot.  With AT, I 
+might bet as small as 1/2 pot.  This concept is called thin value. 
+Thin Value Betting means making a bet to be called by worse hands, accepting that 
+many better hands will also call the bet and understanding that the value obtained from worse 
+hands will be more than the money lost to better hands.  The “thinner” your bet (i.e. the more 
+better hands and the fewer worse hands that will call), the smaller your bet size should generally 
+be.  Sometimes, a bet will be so thin that you’ll need to make your bet very small—possibly as 
+small as 1/5 pot at times.  Other times, you may settle for half-pot as a thin value bet.  The idea is 
+to retain the very worst end of his range—hands that are weak enough that they will actually be 
+
+15
+affected by whether or not our bet is large.  Sometimes this means trying to get value out of Ace-
+high or bottom pair.  In order to accomplish this, we usually have to reduce our bet size. 
+Sometimes you won’t have a choice as to your bet size in thin spots, unfortunately.  I can 
+recall one hand I played.  I had a very wild image and had been 3-betting a lot preflop.  I picked 
+up QQ in the blinds and 3-bet a pro who had raised on the button.  He called, and the flop came 
+down A42.  I bet for value, because I thought that with my image he could call me with worse 
+hands and that he didn’t have too many aces in his range for calling my 3-bet preflop.  He called, 
+which led me to believe that I was probably ahead—I expected him to raise with an Ace to try 
+and stack me if I had a hand like KK, QQ, or JJ.  The turn card was a blank, and now I had a 
+decision to make.  If I bet for value, it would commit my stack as I had only a pot-sized bet left.  
+If I checked, I could potentially miss value from a lower midpair like 88, 99, TT, or JJ.  I realized 
+my bet was thin—he could certainly have an A sometimes, or have flopped a set.  But I shoved 
+the same, and with my crazy image, I was called by 99 and won a big pot.  However, despite the 
+results, I accept that sometimes in that spot I will be called by AT, AJ, 44, or other hands that 
+have me beat.  I have reason to believe that the value I gain from worse hands is enough to 
+compensate. 
+Other times, good opponents will be able to tell that you are value betting thinly and will 
+respond aggressively once they perceive your weakness.  I can recall one hand I played against a 
+very good high stakes regular.  He had raised in the cutoff, and I called in the big blind with 
+KQo.  The flop came down K98r.  I checked, he c-bet, and I made a somewhat thin check-raise.  
+As I check-raise a lot of flops (more on this later), I was pretty sure he could call me with a 
+worse hand.  He called, and I put him on a range of pair hands (anything from AA, AK, KJ, and 
+KT to A9, A8), monsters (88, 99, 98, and the somewhat unlikely KK), and JT, QJ, and QT for 
+straight draws.  The turn card came a T (one of the worst cards in the deck for me), and I 
+checked, planning on folding to a bet.  He checked behind.  At that point I excluded AA, 88, 99, 
+QJ, and KT from his range, as I’d expect him to bet all those on the turn for value.  I felt his most 
+likely hands were JT or QT that picked up a pair on the turn.  The river was a 2, and I decided to 
+go for thin value.  The pot was about 500, so I bet 250, hoping to get called by JT.  He thought 
+for a while, then raised all-in.  It was another 1500 to me.  I realized that my hand was perceived 
+to be weak and that my opponent was very capable of applying pressure and being aggressive.  
+Despite the possibility that he had slowplayed a big hand, I was relatively confident in my read, 
+so I called and stacked his JT.  After the hand, somebody asked me if I had bet small to induce a 
+raise.  No, I said, I bet for thin value.  Inducing a bluff raise was just something that happened as 
+a consequence of that.   
+Value betting is the way to beat poker.  The more value we can squeeze out of hands that 
+are likely ahead, the more money we’re going to make in the long run.  Understanding how to 
+change your value bet sizes depending on the “thinness” of your bet will help you get the 
+maximum amount of value with your entire range. 
+ 
+
+16
+Chapter Five:  Player Identification and Basic Handreading 
+
+ 
+A lot of players make handreading out to be far more difficult than it really is.  They 
+trouble themselves over extensive weighted range analysis, Bayes Theorem, and complex 
+expected value calculations.  At its most basic level, handreading is much simpler than that.  I 
+tell my students to focus on one simple question:  Is he aggressive or passive?  If he’s passive, 
+handreading is a piece of cake.  If he raises, he has an extremely strong hand.  That’s what being 
+passive means.  If he’s aggressive, handreading does become more difficult.  We’ll talk about 
+that in the advanced section.  But first, how do we determine whether or not someone is 
+aggressive or passive? 
+To the average online player, this question seems simple to answer.  The world of online 
+poker has become dominated by statistical analysis programs, hand history recorders and re-
+players, and HUDs (heads-up displays).  For any given sample size of hands, you can find out 
+everything from broad, easily used stats like preflop looseness, preflop raise percentage, and total 
+aggression factor, to extremely specific statistics—fold to river check-raise percentage, etc.  
+Worthless is a little bit too strong of a word, but in my opinion these things are extremely 
+unimportant.   
+ 
+My students often wonder how I can play online, sometimes eight tables at a time, 
+without using any kind of statistical readout program.  How do I get reads?  How do I know how 
+people play?  Am I not at a huge disadvantage?  Not at all.  Instead, I look for the things that are 
+really important.  I call this player identification.  Essentially, it means that there are things you 
+can look for which will tell you quickly and easily whether or not someone at your table is 
+aggressive or passive.  These things include: 
+1) Stack size.  If someone is sitting with less than a full buy-in at a table, and they’re not 
+a pro-shortstacker, they’re usually passive.   
+2) Limping.  If someone calls the big blind preflop and doesn’t open with a raise, they’re 
+passive.  This trend generally applies to their entire game, both preflop and postflop. 
+3) Minraising.  While an aggressive act, this is generally an indicator of a passive player 
+who finally has something worth playing—especially when he minraises postflop.  
+Additionally, a lot of passive players will minraise a wide range preflop and then play 
+passively postflop.   
+4) Number of tables.  If somebody is sitting on 6 tables and sitting with a full stack on 
+every single one, they’re probably aggressive.  If somebody is sitting on only one or 
+two tables, and they have limped, minraised, or not kept a full stack, they’re usually 
+passive. 
+5) 3-betting.  If somebody sitting on your left has 3-bet you often and consistently, 
+they’re usually aggressive.  If somebody has only 3-bet you once or twice, and 
+especially if they’ve made the 3-bet unusually small or unusually large, they’re 
+usually passive. 
+A lot of players make decisions with the rationale that their opponent is “bad.”  While he 
+may be “bad”, “bad” isn’t an accurate enough descriptor to be useful to us in many cases.  I’m 
+constantly seeing players bet QQ on a 8763 board and stacking off when a passive player raises 
+them all in.  They say, “oh, he’s so bad, I couldn’t fold” when they get stacked by a set of eights.  
+
+17
+What they should’ve said was “oh, he’s so passive, I had to fold.”  There are only three types of 
+players: 
+1) Passive-bad.  This type of player calls all the time and only raises with an extremely 
+strong hand.  They’re easy to beat—you just value bet them all the time and fold 
+when they raise.  Simple.  This player is easily the most common type of bad player. 
+2) Aggressive-bad.  This type of player still calls all the time, but they sometimes make 
+raises or bets at times that are inconsistent with any kind of strong holding.  A great 
+example is the flop donk-bet.  I raise preflop with any holding, and an aggressive-bad 
+player calls in the BB.  The flop comes down 863, and he leads into me for a pot 
+sized bet.  This seems unlikely to be a strong hand, as he’d most likely go for a check-
+raise.  So, I raise with any holding and he folds 99% of the time.  I stacked a player 
+like this twice in a row recently.  The first time, I had AK, raised, and he called.  The 
+flop was AQT and he led into me for pot.  I called.  Once again, I assumed that he 
+would usually go for a check-raise with a hand like KJ or AQ.  The turn card was an 
+A.  He led again for pot.  I called.  The river was a 2.  He led into me again for pot.  I 
+shoved all-in, and he called and showed Q7.  The very next hand, I raised with A5s, 
+and he calls.  He led into me on an 882 board.  I called.  The turn card was a 2.  He 
+led into me again for pot.  I called.  He shoved a 4 on the river, and I called again, and 
+stacked his K3.  His lines just didn’t make sense, so I had no problem calling light 
+against this type of player. 
+3) Aggressive-good.  This player plays aggressively, bluffing in spots where they could 
+show up with big hands and value betting in spots where they could show up with 
+bluffs.  They balance their ranges well and pose a lot of problems both preflop and 
+postflop.  We’ll talk about how to beat these players later. 
+It’s important to note that both passive-bad and aggressive-bad are likely to make big calls, and 
+thus bluffing them is, in general, a bad strategy (thus it’s not unreasonable to say “I’m value-
+betting him thinly because he’s bad” or “I’m never bluffing him because he’s bad.”  These are 
+simply shortcuts because the rules are the same whether the opponent is passive-bad or 
+aggressive-bad).  You may be tempted to bluff an aggressive-bad player when he minraises you 
+for the third straight time on a TT4 board, but you’ll wish you hadn’t when he calls you down 
+with 43.  The plan for each type of bad player is simple—against a passive-bad player, we value 
+bet them and we don’t make big calls.  Against an aggressive player, we value bet them and we 
+do make big calls.  Easy game. 
+If you simply pay attention to the little indicators that will help you identify whether 
+someone is passive or aggressive, you’ll find that handreading is far easier than you ever thought 
+it could be.  You don’t need stats.  When you raise UTG 200bb deep, a fish calls 80bb deep, and 
+a reg 3-bets in the SB 200bb deep (you two have a lot of history), do NOT check his “3-bet 
+percentage” stat.  If you had a stat for “3-bet percentage when a regular with which he has 
+history raises utg 200bb deep and a fish calls”, you could probably use that.  In the meantime, 
+however, focus on the things that are easily available, obvious, and trustworthy.  Your reads will 
+be easier to attain and more reliable to use.   
+ 
+
+18
+Chapter Six:  Isolation Theory 
+
+ 
+No Limit Hold ’em is all about advantages.  Every time we get involved in a pot, we’re 
+looking to exploit some advantage or combination of advantages.  The concept of isolation is 
+rooted in this idea.  
+  
+Isolation:  To raise preflop in order to play a pot with a particular player or players.   
+Often, we’re on the button and a weak player limps in front of us.  We want to play pots with a 
+weak player, so we become inclined to isolate with a raise.  Why?  What cards should we 
+choose?  Isolation is predicated on three advantages: 
+1) Card Advantage.  When a weak player is playing hands like J6o, we get a ton of value 
+out of hands like JT, QJ, KJ, and AJ.  If we raise too loosely to Isolate, we risk 
+sacrificing all of our card advantage.  Thus, if we raise J5o and get called by J6o, 
+we’re actually at a card disadvantage.  This isn’t the worst thing in the world, as the 
+better our positional and player advantages, the more we can sacrifice card advantage.  
+However, if we play hands that give up too much card advantage, we may not be able 
+to play them profitably even if we have a ton of skill advantage.  Basically, we can’t 
+isolate with any two cards, but we can start to think about widening our range as our 
+skill advantage increases.   
+2) Positional Advantage.  When we are in position, our cards have inherently more 
+value—it’s easier to get the money in when we have a good hand, easier to apply 
+pressure when we want to bluff, easier to control the pot size with average to weak 
+hands, and easier to handread.  Thus, we should be very inclined to isolate with a 
+wide range of hands on the button, as we have the highest amount of positional 
+advantage possible. 
+3) Skill Advantage.  Our ability to make mistakes less often than our opponents, and to 
+force our opponents into mistakes, increases the value of our hands.  Thus, if we’re 
+playing against somebody who is either passive-bad or aggressive-bad, we can isolate 
+a wider range of hands because they’re making so many mistakes postflop that our 
+hands have increased value.  The worse they are, the looser we can isolate. 
+Here’s an example.  Let’s say we accidentally sit down in a six-handed game with the 
+five best players in the world.  We’re in the small blind, and we pick up pocket aces.  Aces have 
+so much card advantage that, even though we are in the worst position and have a massive skill 
+advantage deficit, we can still play the hand profitably.   
+It’s also important to note that stack size has a strong effect on each of the three 
+advantages, particularly skill and position.  When there is more money behind relative to the pot-
+size, both skill and position become much more powerful.  So, while we might be able to play 
+AA profitably at 100bb against the greatest players in the world, we might not be able to at 
+800bb deep.  Or, we might be able to play them profitably on the button at 300bb deep, but not 
+profitably in the SB 300bb deep.   
+In truth, we can order the advantages in terms of value and importance.  The least 
+important of all advantages is card advantage.  Position comes in 2nd.  But, importantly, skill 
+
+19
+advantage is BY FAR the most important advantage of isolation.  Recently, I had a student fold 
+K4s UTG.  I told him he’d made a big mistake as, despite there being 3 good players to his left, 
+there were two huge fish in the blinds.  Then, a couple hands later, he raised J7s in the CO.  Once 
+again, I told him he was making a mistake.  He said, “How could raising K4s UTG be good, 
+while raising J7s in the CO be bad?”  I told him:  Skill advantage makes the difference.  Playing 
+a pot in position against a bad player is easily worth the risk of playing OOP with K4s, while 
+playing a pot in position with J7s against a bunch of really good players isn’t worth very much at 
+all. 
+In this sense, we need to be constantly thinking of who we’re intending to play pots 
+against.  Let’s consider what it means to raise the button.  A lot of players think they’re raising 
+the button with a wide range to steal the blinds.  Certainly, winning the blinds is a nice bonus.  
+However, we raise the button with a wide range because we have absolute positional advantage 
+and thus we can sacrifice some card advantage when we isolate the blinds.  Remember—we 
+don’t raise the button to steal the blinds; we raise the button to play pots with the blinds.  
+Stealing the blinds is just extra free money.  In this sense, we’re not being inconsistent with our 
+reasons for betting—we’re either raising the button for value (say, with AK), thin value (with 
+J8s) as a bluff (with T7s) or as a thin bluff (with 92s), but either way we’re counting on the 
+blinds to be the dead money we need to collect. 
+So what types of cards should we isolate with when we loosen up our range?  This 
+question was answered back in chapter two.  We want to play hands that give us good equity 
+postflop, which mostly means high cards and suited cards.  So if you want to start loosening up, 
+start adding the Q7 suited hands of the world rather than the 75 offsuits.   
+Understanding why and how we isolate is the way we can target different types of players 
+and take advantage of their mistakes.  It’s how we can attack bad players from all angles and still 
+manage to show up with good hands against good players.  At a poker table, we use isolation to 
+control who we play against and the circumstances under which the battles occur.  I may be 
+playing 50% of my hands against a fish and 20% against a regular—understanding isolation 
+gives me the best of both worlds. 
+ 
+
+20
+Chapter Seven:  Table Dynamics 
+
+ 
+Some circumstances on a poker table are beyond our control.  That doesn’t mean we 
+can’t use them to our advantage.  These factors, which we’ll call “table dynamic issues”, shape 
+the character of every table and have tremendous influence on the ways in which we play our 
+hands.  With a bad player in the blinds on your left, you can raise a very wide range until the bad 
+player leaves and a professional shortstacker sits down.  Suddenly you need to tighten up.  What 
+factors do we need to consider to understand table dynamics? 
+1) Player types.  If you have a loose, aggressive player on your left, you need to play 
+tighter because you’re going to get a lot of action.  If you have a big fish on your 
+right, you should player looser because you’re going to want to play a lot of pots with 
+him.  If you have a shortstacker on your left, you’re usually going to need to tighten 
+up because he’s going to move all-in over your raises frequently.  These are just a few 
+examples of how game dynamics might change your overall strategy. 
+2) Stack sizes.  If there are a number of shorter stacked players at your table, hands like 
+33 and 67s go down in value, as they lose implied odds (they go up in value if there 
+are deepstacked players at the table).  On the flip side, hands like KJ and AT increase 
+in value with shorter stacks because they lose reverse implied odds, but decrease in 
+value with deeper stacks.   
+3) Positions.  Having a good regular on your left and a fish on your right is very 
+different than having a good regular on your right and a fish on your left.  Then, 
+consider a table with 5 other players.  Each table will have a distinct combination of 
+player types, stack sizes, and positions, such that table dynamic conditions are always 
+unique. 
+So how can I use table dynamics postflop?  To explain this, I’d like to pull an example 
+from a common small stakes Limit Hold ’em scenario.  Let’s say that UTG raises, and sees 5 
+callers in a full ring game.  We call in the blinds with 55, and the flop comes down J52.  In this 
+scenario, we always check to the raiser, hoping for him to bet and get several calls, allowing us 
+to trap the entire field in for an extra bet.  On the other hand, let’s say that UTG and five other 
+players limp, and the button raises.  We call with 55 in the blinds, as do all the limpers.  The flop 
+is J52 again, except this time, leading into the field is correct.  This way, we trap the money in 
+the pot before the preflop raiser puts in a flop raise.  This is the essence of table dynamics 
+postflop. 
+The same principle applies to No-Limit.  We want to do whatever we can to keep the fish 
+in the pot.  I was once involved in a large discussion about whether or not to 3-bet QJs from the 
+blinds after a fish limps and a regular raises.  My strong belief is that 3-betting in that spot is the 
+incorrect play, and that calling is far preferable.  If there are no fish involved, 3-betting may or 
+may not be good.  But as soon as the fish limps, we need to do everything we can to play pots 
+with him.  If we 3-bet, we force the limping fish out and isolate ourselves with a regular.  This 
+brings us back to the concept of mistakes—the regular isn’t going to make many, but the fish is 
+going to make a lot.  So why are we trying to isolate ourselves with the guy who plays pretty 
+well?  Understanding table dynamics keeps us from making these mistakes.   
+
+21
+Let’s consider another example of table dynamics.  A regular open-raises on the button, 
+and we decide to call in the blinds with Q♠J♠.  The flop is J♥4♥3♣. The obvious play here is to 
+check to the raiser, as we’re extremely likely to pick up a c-bet.  Then, we can call or raise, 
+depending on image and other considerations (usually calling).  Now, let’s add a table dynamic 
+wrinkle.  A fish limps in MP, the same regular raises on the button, and we call in the blinds with 
+Q♠J♠.  The fish calls as well.  The flop is J♥4♥3♣ again, yet this time we shouldn’t check to the 
+raiser.  Why not?  First of all, we have a hand that we can bet for value against the fish—he’s 
+likely to call us with worse hands (draws, worse J’s, smaller pairs).  Secondly, in a multiway pot 
+(especially with a fish who is likely to call a bet on the flop), the regular’s c-betting range 
+becomes narrower and stronger.  Too often we miss value from the fish, give free cards to both 
+opponents, or pay off by check-calling down against the regular.   
+You’re probably wondering what to do if you lead and the regular raises.  It’s usually a 
+simple answer—fold.  When you lead into a player you know is likely to call you (the fish), your 
+hand range looks strong to anyone paying attention.  Thus, if the regular raises, he is unlikely to 
+have a weak hand or a bluff.  If he has a draw he has to be concerned about a bet/3-bet line, and 
+will probably just call your lead to protect his equity.  If he has a set, he’ll want to raise, hoping 
+to induce a bet/3-bet line and to prevent a free card for a potential flush draw.  The only 
+potentially difficult spot comes when the regular holds a stronger top-pair or an overpair and 
+decides to call our flop bet.  However, we can deal with that on later streets, simply asking 
+ourselves if betting the turn for value is too thin given that possibility. 
+The flip side of this scenario comes when a regular raises in MP and a fish calls on the 
+button.  Once again we have Q♠J♠ on a J♥4♥3♣ board.  This time, it is probably better to check 
+and let the action unfold in front of us.  If the regular checks, it gives the fish a chance to bluff at 
+the pot.  If the regular bets and the fish raises, we can comfortably fold.  If the regular bets and 
+the fish calls, we can usually call one street and see what happens on the turn (sometimes we’ll 
+even be able to check-raise this spot, occasionally getting the regular to fold a better hand and 
+getting the fish to call with a worse one!).  However, even here an argument could be made for 
+leading the flop if we think the regular is unlikely to c-bet at a high percentage.  In that case, 
+we’re simply betting the flop for value.  However, it’s not as clear of a bet as if the fish were 
+directly on our left. 
+The overall point of table dynamics is to understand that the best way to play a hand 
+depends on more than just our cards, their cards, and the board.  How different types of players 
+play, where they’re sitting, the sizes of their stacks, and number of them involved in a pot all 
+affect our decisions.  To make the best decisions, understanding table dynamics is critical. 
+
+22
+Chapter Eight:  Creative Preflop Raise Sizes 
+
+ 
+Let’s combine the previous two chapters to start a discussion of what our preflop raises 
+should look like.  Most players don’t even think about their preflop raise sizes.  It’s a robotic, 
+automatic action—we hit the pot button and raise.  It doesn’t matter who’s limping on our right 
+or who’s in the blinds on our left.  We just mash pot and play from there.  Well, this isn’t going 
+to cut it anymore.  If we’re going to perfect our game, we need to think about every decision, 
+even the small ones.  It’s more important than you think.  We can raise to one of three sizes: 
+1) Pot.  A Pot-Sized Raise is a pretty good default to have in general.  It’s large enough 
+that it gets money in the pot, creating dead money for profitable c-bets and putting 
+stacks in play more easily.  However, a PSR can sometimes be too large of a bet.  If 
+our opponents are 3-betting us a lot, their strategy will be more successful if we are 
+giving up too much dead money.  So, by reducing our preflop raise size we 
+effectively hamper a light 3-bettor’s strategy.  For this reason, many players reduce 
+their raise sizes with a professional shortstack in the blinds.  However, most players 
+don’t reduce their raise size if a loose, aggressive, 3-betting regular is in the blinds.  
+It’s the same principle—we should reduce our raise size if there are good players 
+playing back at us to collect dead money. 
+2) Less than pot.  As I mentioned above, shortstacks and good players are two good 
+reasons to reduce your raise size.  So, if I have two professional shortstacks in the 
+blinds, I’ll minraise the button.  If I have one pro shortstack and one good regular in 
+the blinds, I might raise to either 2x or 2.5x.  If there was a pro shortstacker and a bad 
+player, I’d probably raise to 3x. 
+3) More than pot.  Sometimes, a player will be so egregiously bad that we can punish 
+their preflop mistakes by raising large.  Against some of these opponents, I’ve made 
+my standard open-raise as large as 8x.  The idea is that, if somebody will call 8x 
+preflop and play fit-or-fold postflop, they’re giving up a ton of money.  The other half 
+of the idea is that, if we have a good hand, we can get value more quickly—always a 
+good thing. 
+As you can see, our preflop raise size doesn’t need to be static.  A lot of my students worry about 
+whether or not their changing raise size will give away information about their hand.  It won’t, 
+because you’re not making your decision based on hidden information (i.e. your cards).  Instead, 
+the decision is made based on information available to the table—which types of players are 
+sitting in which seats with what stack sizes.  That information is public.  I might minraise the 
+button with two regs in the blinds, raise to 2.5x on the CO with one reg and a shortstacker in the 
+blinds, and then raise to 5x as soon as a fish hits the blinds.   
+ 
+So, we can see that two of the three advantages of isolation theory are coming back: 
+1) Skill advantage.  We raise larger when we’re better than our opponents, simply 
+because they’ll be creating more dead money by playing against us and making more 
+mistakes. 
+2) Positional advantage.  We generally prefer to raise smaller when we’re in position 
+because having more money behind magnifies the effect of acting last.  For example, 
+if we have only 5bb left in a 10bb pot, it doesn’t really matter whether we act first or 
+
+23
+last, as our only available plays are to shove or fold.  However, if we have 200bb left 
+in a 10bb pot, acting last allows us to raise, float, and make it incredibly difficult for 
+our opponents to play correctly against us. 
+ 
+However, we can’t use card advantage as a reason to change our raise sizes preflop, 
+because that would give away information about our hand somewhat obviously.  Instead, we’ll 
+substitute stack size in place of card advantage: 
+3) Stack Size.  The shorter the stack size, the smaller we want to raise.  The larger the 
+stack, the larger we want to raise.  Easy Game. 
+ 
+
+24
+Chapter Nine:  Value Streets and Pot Management 
+
+ 
+Most people familiar with the modern state of poker will have heard the term “pot 
+control” a million times.  For those who haven’t heard of pot control, it’s essentially the idea of 
+keeping the pot small with a hand that can’t stand a lot of action.  A lot of small stakes players 
+misapply the concept, and check back AK on a A35T board, afraid of being check-raised.  
+Personally, I don’t like the term “pot control”, because, to me, control implies the ability to make 
+the pot either large or small—whatever size we decide is best for our hand.  Therefore, because 
+the definition of “pot control” is so ingrained in the parlance of poker discussion, I will be 
+referring to the concept of controlling pot size as pot management. 
+ 
+Anytime we have a hand, there is a desired amount of value that we are trying to achieve.  
+In any given spot we’re trying to obtain between 0 streets and 3+ streets of value (this implies as 
+much as value as possible, including stacks when appropriate.  If we just want one bet on each 
+street, that would be classified as 3 streets of value and not 3+ streets).  However, that desired 
+value changes street to street.  Therefore, we need to be aware of two different types of value: 
+1) Static Value:  This refers to the amount of value that we want on any given action.  
+Thus, preflop with AA, we want 3+ streets of value.  If we have the nut flush postflop 
+on an unpaired board, we want 3+ streets of value.  If we have A2 on an AQJ board, 
+we may decide we want 1 street of value on the flop, and then decide again that we 
+want no more value on a 4 turn and a 9 river. 
+2) Dynamic Value:  This refers to the way that desired value changes throughout the 
+course of a hand.  Let’s say that, in a deepstacked game, an opponent opens on the 
+button, and we 3-bet from the blinds with A♣A♠ (static value of 3+ streets), and he 
+4-bets.  We 5-bet, and he calls.  So far, we’ve been doing our job, trying to get 3+ 
+streets of value.  The flop comes down K♥Q♥J♥.  Suddenly our desired value has 
+changed from 3+ streets to 0 streets.  We will most likely need to check-fold 
+(depending on how much is behind of course).  The ability to reevaluate value is what 
+separates good players from bad players and prevents us from becoming “married” to 
+a weak hand. 
+ 
+Learning how desired value changes during each street in a hand is a difficult skill.  
+Often, when we feel uncomfortable facing a raise, it’s because the raise forces us to commit to 
+more value than is appropriate for our hand.  Often times, a raise turns our desired static value 
+into a very different desired dynamic value.  A good example would occur when we raise AA 
+and get called by a passive, bad player.  The flop is KQ9r, and we decide to stick with our 3+ 
+streets of value plan.  We bet the flop, he calls.  The turn is a 3o, and we bet again.  This time, he 
+raises all-in.  Suddenly, our desired value has changed dramatically because the bad player’s 
+range has changed from very wide to very narrow.  Against this new range, we want 0 streets of 
+value.  And yet, if we call, we’re forced into committing 3+ streets of value.  Despite our static 
+value plan of 3+ streets of value that we maintained preflop and on the flop, our new desired 
+dynamic value lets us know that it’s time for a good fold. 
+ 
+Most of the time, however, that raise doesn’t come.  We’re instead presented with the 
+much more enjoyable question of trying to get the most money from our opponent’s bad calls.  
+As discussed in Chapter Three, our value bets should generally be larger rather than smaller.  It 
+
+25
+wasn’t entirely explained, though, how to put ourselves in the position where our value bets will 
+be most effective.  Let’s assume 100bb stacks at 5/10 no-limit for the sake of easy numbers.  We 
+raise to $40 with Q♦Q♥, and we get one caller on the button.  The pot is $95 now (counting the 
+blinds).  The flop is Q♣8♠7♠.  We bet $80, he calls (so far so good).  The pot is now $255.  The 
+turn is a 3♣.  Now, let’s think about managing the pot size.  We have $880 behind.  If we bet 
+$230, and he calls, the pot will be $715 and we will have $650 behind—perfect for a river shove.  
+However, if we bet $170 on the turn instead of $230, the pot will be $595 with $710 behind—
+now we’re overbetting the pot, which is going to look a little bit scarier than if we had managed 
+the pot correctly to have a pot sized bet or less by the river.  Many players I see bet even less 
+than $170 on the turn, and find themselves getting only about 50bb in value when they should be 
+getting the full 100bb.  I tell my small stakes students this all the time—double your bet size, 
+double your winrate.   
+ 
+I learned about pot management the hard way.  Early in my high stakes career, I decided 
+to take a shot at a 15/30 deepstacked game.  Sitting with 6k, the other five players at the table 
+covered me.  I sat and folded junk hands for a while, until I picked up KK on the button.  An 
+extremely good player raised in mid position, and I reraised him for the first time in the session.  
+He called.  The flop came down 742r.  He checked, and I decided to check for deception and to 
+hopefully induce a bet on the turn (in retrospect, this probably should’ve been a bet, but if I had 
+reason to believe that betting KK there was too thin then a check is okay).  The turn was a Jo.  
+He checked again, and now I decided to go for value, so I bet out.  He check-raised quite large, 
+but I didn’t realize the purpose of his check-raise size until I called it.  As soon as I saw the chips 
+go in the middle, I realized that the pot was now 4k, and that we had exactly 4k behind.  I knew 
+what was coming as soon as I saw the pot size—the opponent shoved all in, putting me in an 
+impossibly difficult spot.  I eventually decided to fold (which I still think was the correct play, 
+though it’s incredibly close).  However, the lesson was important—if you’re thinking about how 
+pot size changes, you can structure your bets on each street in order to maximize value by the 
+river.   
+ 
+Most small stakes players struggle most with this concept.  They don’t bet big enough on 
+any street and then are left on the river with a pot that’s too small to get the stacks in.  Fixing this 
+problem will probably double your win-rate. 
+ 
+At this point, we’ve only discussed cases in which managing the pot means betting large 
+and getting value.  What about scenarios where we want to keep the pot small? 
+
+26
+Chapter Ten:  Showdown Theory 
+
+ 
+Knowing when to keep the pot small is easy at first.  Look back at Chapter Two and the 
+reasons for betting.  When you can’t plausibly justify a bet for either reason #1 or reason #2, it’s 
+usually best to check.  The classic example:  We raise KK on the button and get called by the big 
+blind.  The flop comes down A22r.  The blind checks, and the action is to us.  We assume a few 
+constants; first, that the big blind will never fold an Ace to a bet; and second, that the big blind 
+will never call with a hand worse than an Ace.  Thus, we can’t bet for value, nor can we bet as a 
+bluff.  Certainly we can bet to collect dead money (reason #3), but in that event our KK might as 
+well be 73o.   
+ 
+So why do we care whether or not our KK might as well be 73o? The brief answer is that 
+KK has more value than 73o—as far as the action has gone thus far, KK is far more likely to win 
+at showdown than 73o.  However, once we bet and are called, they both have roughly the same 
+likelihood to win at showdown.  So how do we preserve the value of our KK?  What happens if 
+we check behind instead of betting? 
+ 
+Consider our opponent’s range of hands.  When he called preflop, we were ecstatic—KK 
+crushes his range and, assuming he would always reraise AA, we are 100% certain to be ahead 
+of his hand.  A portion of his hand range contains an Ace, but that portion is far overshadowed 
+by hands like QJ, 76s, 88, and many, many others.  Once the flop comes down A22, a small 
+portion of his range has improved to beat us, but the majority of his range is still far, far behind.  
+So, if we bet, we isolate ourselves with hands that beat us.  If we check, we continue to play 
+against a wider range—and a range that we’re ahead of.  This concept is called range 
+manipulation, and we’ll discuss it in more depth further on.  Indeed, we can even continue to get 
+value from our hand, as checking behind often induces small bluffs from weak players.  We can 
+definitely call at least one bet most of the time and be happy with the additional value.  
+Understanding when to check behind and when to bet is the essence of showdown theory.  
+When should I check behind? 
+1) You’re unlikely to get called by a worse hand (or make a better hand fold).   
+2) You’re unlikely to be outdrawn.   
+ 
+In the KK example, we’re very unlikely to be outdrawn as no overcards can fall.  We’re 
+also unlikely to be called by a worse hand, as the board is dry and Ace-high.  What about, 
+instead, if we hold TT?  While we’re still unlikely to have the best hand, we’re far more likely to 
+be outdrawn.  So, we should be far more inclined to bet TT than KK.  If we have 33, we should 
+be extremely inclined to bet—our hand wins less often at showdown (has less showdown value) 
+and thus we are okay sacrificing the showdown value of our hand by betting to collect dead 
+money.   
+When should I bet? 
+1) You’re likely to get called by a worse hand (you’re still probably unlikely to make a 
+better hand fold). 
+2) You’re likely to be outdrawn.   
+
+27
+ 
+We raise on the button with 8♦8♥, and the big blind calls.  The flop is 9♣7♣3♠.  While 
+our hand is very likely to be best, we are extremely likely to be outdrawn.  This should incline us 
+to bet.  Also, we can be confident to be called by worse hands, including smaller pairs and draws.  
+So, we bet for value and in the process we obtain “protection.”  Protection isn’t a word I use 
+often so I’m not going to delve into it too thoroughly, but my quick take on protection is this:  
+any time we have a hand worth protecting, we have a hand worth value betting.  Any time we 
+have a hand we can’t value bet, we don’t need to worry about protecting it.  If the pot is 
+extremely large and we’re betting for protection, we’re actually betting for thin value (or as a 
+thin bluff) and, more significantly, to capitalize on dead money.  In this respect, protection is not 
+a reason for betting, but a consequence of it.   
+ 
+Certainly, you’ll have to walk some fine lines when trying to decide whether or not to 
+play for showdown.  What if I have 9♦9♥ on an A♣8♣8♠ board?  I’m very likely to be 
+outdrawn, so that inclines me to bet.  I’m unlikely to be called by a worse hand, so that inclines 
+me to check.  The ability to weigh these inclinations are what make somebody good at poker—
+it’s why KK is a bet on an A♠Q♠9♣ board but a check on an A♣3♥2♠ board.  In the spots that 
+are truly close, like the 99 on A♣8♣8♠ board, it probably won’t have much of a lasting effect on 
+your game which route you choose to go. 
+ 
+I see small stakes players make one big mistake time and time again when it comes to 
+showdown theory.  They raise A♠K♠ on the button and get called by the big blind.  The flop 
+comes down A♣7♣6♦.  They bet the flop and get called.  The turn is the 8♠, and the blind 
+checks.  I can’t tell you how many times I’ve seen players check behind in that spot.  There are a 
+ton of worse hands that can call on the turn.  We’re very likely to be outdrawn.  This is an 
+autobet for value.  To paraphrase Doyle Brunson:  “I’m not too worried about getting check-
+raised… I’ll cross that bridge when I come to it.”  Get the value you need, deal with the check-
+raise when it happens.   
+ 
+The last discussion to be had regarding showdown theory revolves around the concept of 
+turning a weak hand into a bluff.  However, we will deal with that in the advanced section.  For 
+now, just focus on getting your value and practicing the reasons for betting.  If you can’t justify a 
+bet with one of the three reasons, you should probably check behind.  If you want to slowplay 
+with AA on an A22 board, that’s fine, but it’s pretty bad on an A♣Q♣J♦ board.  But, in general, 
+if you think you can get called by worse, go ahead and make the bet.   
+ 
+In general, this is addressing showdown theory at its most basic level.  In the advanced 
+section, the chapter entitled “The Great Debate” covers the arguments both for and against 
+checking behind on some flops.  It’s currently a hotly contested issue among high stakes players. 
+ 
+
+28
+Chapter Eleven:  Monotone Boards and Equity 
+
+ 
+Monotone boards are a tricky one.  On the one hand, our opponents will have a lot of 
+pair+draw hands that will call our value bets.  On the other hand, all of those hands have a lot of 
+equity in general, so our value bets are inherently thinner.  Before we go any further, though, we 
+need to be clear about that a raise on a monotone board usually means an extremely strong hand: 
+1) People don’t call raises preflop with offsuit cards.  On a K♥9♥8♥ board, most decent 
+players aren’t raising their one-heart hands because they simply don’t hold any.   
+2) On a monotone board, the preflop raiser is likely to have a lot of equity.  With black 
+aces on that same K♥9♥8♥ board, we have decent equity.  With A♥Q♣, we have 
+good equity.  For this reason, people don’t bluff boards like these—they’re way too 
+likely to have smashed the preflop raiser equity-wise.   
+ 
+Basically, we can expect somebody raising on a monotone board to have an extremely 
+strong hand.  I’ll never forget one hand that I played a long time ago against Krantz at 10/20.  I 
+raised the button with 7♣6♣, and Krantz 3-bet from the blinds with red AK.  I called (this was 
+probably a mistake, but I didn’t know it at the time).  The flop came down A♣K♣4♣.  Jackpot, 
+right?  Krantz bets the flop, and I raised.  As the time began to run down, Krantz typed into chat 
+“AK no good, huh” and folded.  I was shocked (and I felt more than a little bit outclassed at the 
+time).  When I tried thinking about the fold from Krantz’s point of view, it started to make 
+sense—I wasn’t calling preflop with that many one-club hands, and even with those I’m calling 
+Krantz’ flop bet the majority of the time.  I’m never pure bluffing.  So, if I’m only value betting, 
+then I can beat AK.  (For those interested, calling with my small flush was definitely the correct 
+play on the flop.  Krantz would certainly have value bet for me on the turn, and all I have to do to 
+get his stack is dodge a club, A, or K on the turn).   
+ 
+Lastly, and perhaps most importantly, even if I did have a one-club hand, I still have 
+significant equity against Krantz.  If I have Q♣J♦ on that flop, I am coinflipping with him.   
+ 
+Misunderstanding the overall scope of equity is an extremely common mistake.  Poker 
+players often say, “Well, if he has a draw more often than he has a flush, I should go all in.”  
+That is incorrect thinking, as if he has a flush we’re drawing to 4 outs, whereas if he has a draw 
+he’s drawing to as many as 12.  So, instead of it being “whether or not he has a draw more 
+often”, it’s “whether or not he has a draw way, way, way, way, way more often.”  As you guys 
+can tell I’m not a big math guy.  I do, though, have the common sense to realize that draws win a 
+lot.  If we’re going to compete in a way-behind/slightly-ahead type of spot, we’d better be 
+slightly-ahead an obscenely large percentage of the time.  Most of the time when we face a raise 
+with a one-pair hand on a monotone board, we’re not slightly ahead nearly as often as we need to 
+be.  So, monotone boards are good places to make tough folds.  They’re not, though, good places 
+to make bluffs, because most players won’t be as good as we are at making those tough folds.  
+Just count on our opponents making the mistake of calling too often and value bet them.   
+ 
+
+29
+Chapter Twelve:  A Brief Understanding of G-Bucks 
+
+ 
+In the previous paragraph, we touched on a subject that is commonly referred to as G-
+Bucks.  G-Bucks was originally pioneered as a concept by Phil Galfond (AKA OMGclayaiken, a 
+top-5 player in the world currently).  The idea is relatively simple—whether or not you make the 
+correct decision against someone’s hand is relatively unimportant (this type of decision is called 
+a Sklansky buck decision, i.e. if you put in 100 dollars at 20% to win, you win a theoretical 20 
+dollars).  Galfond’s idea, though, was that even if you get the money in at 20% to win, if you’re 
+60% to win against his range, you actually win 60 dollars in the long-term, even though the 
+results of the hand led you to a 20 dollar expectation.   
+ 
+A moment ago, we were talking about how people don’t do a good job of evaluating the 
+strength of draws in the context of equity.  They assume that if a person has a draw more often 
+than 50% of the time, they should go all-in.  This ignores the fact that range equities are what 
+matter—a person with a range that looks like sets 40% of the time and draws 60% of the time 
+usually is a big favorite against our range, even though they have a draw more than half the time.  
+This is a pretty basic understanding of G-bucks in terms of equity.   
+ 
+This also is a pretty decent argument as for why we shouldn’t overly concern ourselves 
+with math when trying to play poker at a table.  The math is either very simple (we have the nut 
+flush draw and thus have around 45% equity) or extremely complicated (against an estimated 
+10% of his range, we are 75% equity, against an estimated 35% of his range, we have 20% 
+equity, against an estimated 55% of his range, we have 45% equity, balance out the range equity 
+and compare to pot odds to determine our G-bucks).  Even in the complicated scenario, it relies 
+on deductive analysis to determine his likely range.  In general, we’ll instead rely on the basic 
+math and a generalized “feel” approach to the complicated stuff.  But, it’s important to know that 
+G-bucks defines a structural poker concept. 
+ 
+Since writing this chapter in for the initial release of “Easy Game”, it has come to my 
+attention that G-Bucks, as originally written, refers not to our hand’s strength against our 
+opponent’s ranges but the opposite—our range against our opponent’s holding.  In terms of 
+understanding the concept, this is somewhat beside the point.  What matters is that we’re focused 
+on identifying our equity against our opponent’s range first and foremost.  It’s a rather more 
+advanced skill to identify our range’s equity against our opponent’s range (and one that we won’t 
+really need to emphasize until we play against the same strong players every day).  Until we hit 
+the nosebleeds, we can take advantage of the practical uses of G-Bucks and focus on range 
+equities. 
+
+30
+Chapter Thirteen:  Full Ring vs. 6-max and Positional Protection 
+
+ 
+Many players at small stakes begin with full ring games as opposed to 6-max games.  
+There are a lot of psychological reasons behind this—full ring games promote a more 
+conservative, safe strategy, while 6-max games are more wild, loose, and aggressive.  However, 
+the tangible differences between a full-ring game and a 6-max are often overstated.   
+ 
+I was having a conversation with a really solid player about preflop raising ranges on the 
+button.  I asked him, “How does your preflop raising range on the button change if it’s a six-
+handed game versus a three-handed game?”  He looked at me like I was an idiot.  “The button is 
+just the button,” he said.  Of course.  If you’re playing in a 9-handed table, and then the first 
+three players to act all fold, there is no theoretical difference between your table and a 6-max 
+table.  Imagine playing a 6-max game where the dealer throws away six cards before he deals 
+everyone in—in theory, it’s exactly the same. 
+ 
+In practice, though, it’s not exactly the same.  Not because we should change our raising 
+ranges dramatically between 6-max and full ring; rather, I think we can play significantly looser 
+than the commonly accepted super-tight strategies that are most usually applied in full-ring.  
+There are a few reasons why we can afford to play loosely in a full ring game: 
+1) If we’re called by bad players, that’s fine.  As long as our skill advantage 
+compensates for our lack in card and positional advantage, we’ll be fine.  Bad players 
+are predictable enough to feel comfortable playing loosely against them, even out of 
+position. 
+2) If we’re called by “good” players, it’s actually better for us in full ring than it is in 6-
+max.  In 6-max, our range is perceived to be very wide.  Therefore, good regulars are 
+likely to bluff-raise us often, float often, and generally make it difficult to play 
+profitably OOP.  In full-ring, on the other hand, our range is perceived to be tighter 
+(this is simply the game dynamic of full ring).  Thus, both our c-bets and 2-barrels are 
+more effective, which means we’re beating “good” players by playing loosely. 
+ 
+Obviously we don’t want to get carried away.  Raising A9o UTG in a 9-handed game is 
+relatively suicidal.  That said, understanding the way that perceived ranges change is vital to 
+exploiting the differences between shorthanded and full-ring games.  In one of my videos, I say 
+that I’d prefer to have KQs UTG in a full ring game than 44, simply because our opponents are 
+trying to beat our perceived range—big pairs.  This means they’re going for 2-pair or better.  A 
+set of fours, unfortunately, usually only beats two-pair when stacks go in.  We’re often behind 
+higher sets, straights, and flushes.  Also, when 44 misses, it lacks equity to effectively bluff or 
+semibluff on the flop and turn.  KQs, on the other hand, usually makes the best flush.  It always 
+makes the best straight.  And it often has enough equity to continue aggression and make a lot of 
+1-pair hands fold on the turn.  The difference is clear—in a 6-max game, the perceived ranges 
+are looser, so a set of 4’s gets paid off by all kinds of 1-pair hands, draws, even pure bluffs.  In a 
+full-ring game, the perceived images are tighter, so a set of 4’s gets coolered by a set of 6’s while 
+KQs coolers 78s.   
+ 
+Another vital factor that differentiates 6-max and Full Ring play is the change in 
+emphasis on positional protection.   
+
+31
+ 
+Positional Protection means the manipulation of perceived ranges to protect the value of 
+your hand preflop.  For example, if we raise UTG in a 9-handed game, we are incredibly unlikely 
+to be 3-bet lightly.  This is because our perceived range for raising in that position will generally 
+be extremely tight.  This means that raising a hand like ATs, J9s, or even 67s has a lot of extra 
+value, as these are hands that we often fold to light 3-bets in a more aggressive 6-max setting.  
+So, we can make looser opens when we have positional protection because we get to see a lot 
+more flops.   
+ 
+By the same token, we can also make looser calls.  In a 6-max game, let’s say that an 
+aggressive regular raises in the CO and we have 96s on the button.  This is often a fold, in large 
+part due to the possibility of a squeeze from the blinds.  However, if someone raises UTG in a 
+Full Ring game, we can count on their positional protection to keep us from getting squeezed out 
+of the pot.  This allows us to play more hands profitably in position.   
+ 
+Positional protection exists in a 6-max setting as well, but it’s less prevalent.  If a good 
+regular raises UTG, I’ll often call a wide range in MP because he’s still somewhat unlikely to be 
+3-bet lightly due to his position, and given the table dynamic situation I could easily have flat-
+called a strong hand like JJ or QQ (even KK, AK, or AA are in my range for calling preflop 
+there), and thus I can count on people being less likely to 3-bet lightly against two potentially 
+strong hands. 
+ 
+In short, Full-Ring play isn’t too much different than 6-max play.  The existence of three 
+extra players is usually irrelevant, as players play extremely tightly from those positions and, 
+when they fold, we’re just playing 6-max anyway.  The significant difference is one of context—
+the tighter context of Full Ring means that we play back more tightly to aggression but also that 
+we open our game more widely until we face aggression back at us.  Being able to adjust through 
+different contexts is critical to understanding poker in any setting, whether 6-max, Full Ring, or 
+Heads Up. 
+ 
+
+32
+Chapter Fourteen:  An Introduction to 3-Bet Pots 
+
+ 
+When this book was written originally, all content on the subject of 3-betting was 
+relegated solely to Volume II.  This is because 3-betting becomes much more difficult to deal 
+with when playing against aggressive players who 3-bet at high frequencies and with wide 
+ranges.  The basic assumptions I use when playing against passive players seemed obvious, and 
+thus I left them out.  This was a mistake, and I’m going to outline the basic assumptions to deal 
+with somebody 3-betting me at a lower stakes game.  Then, we’re going to discuss how we 
+should approach 3-betting ourselves at small stakes. 
+ 
+Let’s say that we open in mid-position and the button 3-bets us.  Each of us has 100bb.  
+The blinds fold.  We’ll start with assumption #1: 
+1) People’s 3-betting ranges are tighter than we want to believe.  Don’t assign somebody 
+a loose 3-betting range unless you’ve seen them 3-bet a lot—and even then, it’s still 
+probably tighter than you think.   
+ 
+This obviously means that we want to start folding anything that we can’t reraise for 
+value.  But what about hands like TT?  AQ?  Can’t we call OOP with these hands? 
+2) Our equity with TT is much worse than we want to believe.  If he’s getting crazy with 
+QJ, we’re going to be coinflipping with him postflop.  We also are going to be forced 
+to fold any A or K flop, as these are too likely to have hit our opponent’s 3-betting 
+range for us to call-down profitably. 
+ 
+So, if we can’t call OOP with TT, we certainly can’t call with 99-22.  This leads us 
+towards a major conclusion: 
+3) Don’t call any 3-bets OOP with 100bb stacks if it’s HU.   
+ 
+Sometimes, the button will 3-bet us and the BB cold calls.  If we’re sitting with 88, we 
+are usually getting correct pot odds to call and hope to hit a set.   
+ 
+The next question would be about a hand like JJ or AK.  Can we call OOP with one of 
+these hands?  If I 4-bet it and get it in, I’m rarely going to be ahead, right? 
+4) If somebody has a wide enough range to call OOP with AK or JJ, then there is 
+enough dead money to profitably 4-bet these hands and get it in preflop.  Conversely, 
+if somebody has a tight enough range that we can’t call OOP, we should just fold our 
+hand preflop.  If I raise UTG in a full ring game with AK and a super-nit 3-bets me in 
+MP, I’ll probably just fold.  That’s okay. 
+ 
+The difficult thing about the idea of calling 3-bets OOP is that, in theory, it could be 
+okay.  However, knowing when and how to deal with that is extremely difficult and relies on a 
+lot of advanced concepts that are elucidated in Volume II.  To keep things simple (and 
+profitable) for people playing in smaller stakes games, you should never call a 3-bet OOP given 
+100bb stacks and  HU pot. 
+Now, what about 3-bets in position?   
+
+33
+1) People’s 3-betting ranges are tighter than we want to believe.  We still have to play 
+tightly in general unless somebody begins to 3-bet us noticeably too often. 
+2) Low cards are bad in 3-bet pots for a variety of reasons.  Their hot-cold equity is 
+worse, which is important in 3-bet pots.  Low cards often rely on implied odds, which 
+are reduced in 3-bet pots.  This is explored in much further detail in the advanced 
+volume. 
+ 
+Being in position means that we can call 3-bets, as opposed to being OOP when we really 
+can’t.  Essentially, we can defend with high cards and pairs, both of which play well in 3-bet 
+pots.  How low we can go (in terms of both high cards and pairs) depends on how lightly 
+somebody is 3-betting us.  For example, 88 plays fantastically well against somebody who 3-bets 
+67s, but only reasonably well against somebody who just 3-bets hands like KJ.  Thus, given 
+100bb stacks, we sometimes call a 3-bet with 88 and sometimes fold, leaning towards calling in 
+general.  However, if we have 44, we might still sometimes call, but we’d lean towards folding 
+in general.   
+ 
+It’s not too tough to figure out what types of hands people are 3-betting with—just watch 
+to see when somebody gets to showdown.  If you see somebody c-bet and then give up with 86s 
+on a A53J9 board as the preflop 3-bettor, just make a quick note that this person 3-bets with low 
+suited connectors.  Suddenly we’re not folding 77 preflop.  You can use discretion as for how 
+low you want to go, but in general it’s bad for us to be defending with an 86s type of hand.   
+ 
+If you’re ever unsure about whether or not your hand is good enough to defend, just 
+compare its equity to the weaker hands in your opponent’s range.  So, if our opponent is 3-
+betting 86s, we can feel very comfortable calling with 99, but if the weakest he’s 3-betting is QJ, 
+we feel less comfortable.  The reason why we don’t want to defend with a hand like 86s 
+ourselves is that it suffers in equity.  Compare 86s to even the weakest hands in our opponent’s 
+range and we find that we’re a significant underdog—too significant to be compensated by the 
+value of our skill and our position given the worse stack-to-pot ratio. 
+ 
+In short, ranges for 3-betting in small-stakes games are usually significantly tight.  We’ll 
+usually give our opponents a lot of credit for big hands, and thus we’ll just fold to their 3-bets.  
+Folding JJ to a 3-bet might seem extremely weak and exploitable, but it’s NOT if the person only 
+3-bets you once every five thousand hands.  On the other hand, we can 3-bet our opponents with 
+a wide value range, as even a hand like QJ has a lot of value in a 3-bet pot if our opponents are 
+consistently calling with 55, 67s or A3.  Hopefully this is a good stepping stone to the advanced 
+section’s more detailed description of 3-betting and the metagame effects of developing image 
+through preflop aggression. 
+ 
+
+34
+ADDENDUM 
+ 
+Dead Money versus Live Money 
+ 
+ 
+Recently, the idea of using dead money to justify actions has picked up a lot of 
+momentum.  It’s common to hear people justifying their actions by relying on the presence of 
+money in the pot.  Unfortunately, there is a quick shortcut that’s often taken that commonly leads 
+people astray.  The common assumption is that dead money simply means any money in the pot.  
+The mistaken thinking might be, then, that if I bet $100 into a pot of $150 and my opponent 
+raises to $250, that there is $500 of dead money in the pot.  This isn’t quite sophisticated enough.   
+ 
+Let’s continue with this example.  The first thing we have to consider is our opponent.  If 
+our opponent is extremely passive and would never raise without the nuts, there is precisely $0 
+of dead money in the pot.  There is exactly $500 of live money in the pot.  Dead money, then, 
+only exists when it’s possible that our opponent might fold at some point during the hand.  This 
+is an incredibly common mistake.  We can explore this further using some arbitrary numbers. 
+Instead of a passive player, let’s say that the raiser is aggressive and will fold to further action 
+50% of the time.  In that case, only $250 of the pot is actually dead money.   
+ 
+The crux of this point lies in differentiating between players who will fold and those who 
+won’t.  This might be a good time to reread the previous chapter on the subject of dead money.  
+Passive players, by definition, create zero aggressive dead money.  So, if they raise or play back 
+at you, you can count on the pot being incredibly live.  I once watched a friend playing 10/20.  
+The friend raised T♥9♥, and a passive player called in the blinds.  The flop was Q♥6♥4♣.  The 
+passive player checked, my friend bet, and the passive player check-raised.  My friend shoved all 
+in and was summarily stacked by a set of sixes.  When we talked about the hand later, collection 
+of dead money was a major reason for his shove.  After some thought, it became clear that this 
+type of play is totally acceptable against a player who actually has a check-raise bluffing range—
+there probably is a lot of dead money to be won.  In a pot that’s 100% live, though, semibluffs 
+(or bluffs of any kind) are suicide.  
+ 
+Let’s consider some situations where we have to decide just how dead the money in the 
+pot really is: 
+1) We raise on the button preflop and a passive-bad BB calls.  The flop is XXX.  The 
+pot remains largely dead, as we can expect the BB to generally c/f the majority of his 
+range. 
+2) We raise in the CO preflop and a passive-bad button calls.  The flop is Axx.  We c-bet 
+the flop and he calls.  The pot is now very live, and without a specific read we can 
+rarely expect our opponent to fold ever. 
+3) We raise in the CO preflop and an aggressive-bad player on the button calls.  The flop 
+is J54. We c-bet the flop and he raises.  Despite his probable wide range, the pot here 
+is still pretty live.  We might rebluff here and get called down by an oddly played A4 
+or 66.   
+4) We raise in the CO preflop and a loose-aggressive, good player calls in the blinds.  
+The flop is J♥5♥4♣.  He checks, we bet, and he calls.  The pot is usually pretty dead 
+here, as we’d expect him to raise his strongest hands.  We should be able to barrel 
+pretty effectively. 
+5) We raise in the CO preflop and a loose-aggressive, good player calls in the blinds.  
+The flop is J♥5♥4♣.  He checks, we bet, and he check-raises.  Again, the pot is often 
+
+35
+pretty dead here, as many hands in his range are bluffs or draws that would generally 
+fold to a reraise.  This isn’t a bad spot to reraise as a bluff. 
+6) We raise in the CO preflop and a tight-aggressive, good player calls in the blinds.  
+The flop is J♥5♥4♣.  He checks, we bet, and he check-raises.  Now, the pot is 
+nowhere near as dead as it was before—we can’t count on dead money to make a 
+reraise bluff here.  In short, it’s much too thin. 
+ 
+I could go on for thousands of examples.  These probably seem rather obvious. However, 
+I’m including these examples because I see students misapplying reason #3 for betting 
+(capitalization of dead money) all across the board.  Just because there’s money in the pot 
+doesn’t make it dead money.  Remember to differentiate between dead money and live money 
+and you’ll cut down on spew and make smarter, more efficient bluffs.   
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+36
+Equity Distributions 
+ 
+ 
+A lot of players assume that equity keeps a linear relationship with hand strength.  In 
+other words, KK is just as much better than QQ as AA is better than KK.  Many of you probably 
+just thought, “Ha!  I don’t think like that!”  However, many of my students—players just like 
+you—have often said things like, “well, AJ is definitely a call but AT is definitely a fold.”  The 
+simple truth is that equity doesn’t work in fine lines like that because the linear relationship 
+between equity and hand strength doesn’t exist.   
+ 
+It helps to graph a player’s winnings-by-hand in order to understand the distribution of 
+equity.  While I don’t have a fresh set of data to use for this particular graph, I’ve seen enough of 
+them (and used to keep them for myself long ago) to know exactly what they look like.  See 
+below: 
+ 
+ 
+(Note that this graph is an approximation and not a representation of a specific data set) 
+ 
+ 
+AA is far, far more profitable than other hands.  KK is also way above everything else, 
+but significantly lower than AA.  Queens, Jacks, AK and AQ also do pretty well.  Everything 
+else, though, is grouped closely together in value.  How could this be?  99 isn’t that much more 
+profitable than 87s?  What about TT vs. QJ?  The truth is that equity is distributed in such a way 
+as to wildly favor the strongest hands and to give only slight advantages to everything else.   
+There are two major factors at play here: 
+1) The natural distribution of equity in general is uneven.  Imagine a world in 
+which every player played 100% of their hands.  While this might make a 
+hand like Q7o playable, Q7o would hardly maintain dominating equity against 
+
+37
+worse hands the way that AA normally does.  In short, even if everybody 
+played everything, Q7o wouldn’t be equally far from 82o as it is from AA.   
+2) To make matters more problematic, players don’t play 100% of their hands.  
+Players fold the bottom 60-80% of their hands preflop.  So, the gaps in equity 
+that exist between something like QJ and 82o disappear once 82o stops being 
+played.  Instead, QJ plays against a range of hands that the opponent hasn’t 
+decided to fold preflop, and thus its equity advantage is far less significant 
+than we might think. 
+ 
+So why does this matter?   
+ 
+ 
+Players constantly overestimate their equity.  The classic example was mentioned earlier 
+in the section titled “Introduction to 3-Bet Pots.”  We raise TT in the CO and we are 3-bet by the 
+button.  My students are often initially inclined to call the 3-bet OOP and play.  When 
+questioned, they invariably cite the strong equity of TT.  I then usually ask about 99, and they 
+say, “same thing.”  Then I ask about 88, and they usually say, “no, 88 is too weak.”  Consider the 
+differences in equity between TT and 88.  They are minimal against everything but 99 and 9x 
+(A9, J9, etc.).  They’re essentially on the same level.   
+ 
+My next question is usually, “TT’s equity is strong against what?”  In fact, a preflop 3-
+bettor’s hand range usually has TT crushed equity-wise.  Against those 3-bettors light enough 
+that our hand actually does have enough equity to play, by calling the 3-bet OOP we give up our 
+card advantage by letting them use their positional advantage and end up in yet another –EV 
+situation.  However, these entire problems would be avoided if we simply understood equity 
+better.  Understanding that TT isn’t that much better than 88 but that it’s muchworse than QQ is 
+vital to even begin thinking about evaluating our hand strength preflop.   
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+38
+Introduction to HU Play 
+
+ 
+When considering the completion of this book, I realized that including a full discussion 
+of Heads-Up play would be necessary in order to offer a truly complete summary of modern 
+NLHE.  However, despite having a lot of HU experience, I don’t consider myself to be an expert 
+in HU in the same sense that I am in an expert in a 6-max and Full Ring context.  So, I asked my 
+friend Matt Colletta, known on twoplustwo as MatthewRyan and on Full Tilt as Checkmate824, 
+to outline the HU game, a mental framework for understanding how poker changes in a HU 
+context, and to prepare you to think correctly about HU play.  Matt is one of the best HU players 
+between 10/20 and 50/100, has over $1M in career winnings, and was one of the largest winners 
+on Full Tilt Poker last year.   
+ 
+
+39
+Chapter Fifteen:  HU Play for Beginners 
+
+By Matt Colletta 
+I’m going to start with the basics here for those of you that have never played any heads 
+up at all.  First off, let me start with something I believe to be true for a couple of reasons; there 
+is more money to be made playing heads up, 1 on 1, No Limit Hold ’em than with any other 
+form of poker.  Bold statement right?  First consider this, when playing heads up you can choose 
+to always play weaker players than yourself.  No more dealing with super agro, top tier regulars 
+at your tables.  No more dealing with 12 tabling nit grinders on your right or short stackers going 
+all in every time you play a hand.  Instead there is only one opponent, of your choosing, that you 
+will be able to focus 100% of your energy on.  Game selection will become the number one 
+determining factor of your success—that’s a big deal.  Secondly, when playing heads up you 
+have the opportunity to exert control over the flow of the match, the opportunity to get inside 
+your opponent’s head and always be one level up on him.  When you have complete control over 
+the match and know how your opponent is going to react to every move you make, your winrate 
+is going to be astronomical.  Everyone always thinks the money in poker comes from the fish, 
+but when you play heads up poker the real money is going to come from playing worse regulars 
+on multiple tables and owning them so badly that they drop 10 buy-ins to you in an hour and 
+they never even knew what hit them.  Lastly, there is the most money to be made by playing 
+heads up poker because heads up is where the highest stakes are played.  If you dream of one day 
+playing nosebleed stakes, then heads up is the game you will be playing there.  
+ 
+Now that you’re (hopefully) all pumped up and ready to play some heads up against Phil 
+Ivey, let me explain some of the basics.  First of all, you’re going to be making decisions and 
+playing in just about every hand.  Thus it’s definitely best to start out one tabling and add more 
+later on as your comfort level increases.  The amount of hands you should be playing goes up 
+dramatically from a 6-max game.  Many of the top heads up players in the world raise close to 
+100% of the time they are on the button.  Conversely, while in 6-max you would never defend a 
+hand like 9To from the big blind that becomes a snap call heads up vs the button’s raise.  You 
+will also need to stop thinking about your hand’s strength in exact terms and really start 
+assessing a hand’s value vs. their range.  While that’s of course true for all types of poker, I want 
+to be clear and make sure you realize you can no long get away with folding 2nd pair ‘just 
+because’ the flush came and he’s betting big.  In more precise words, hand ranges and relative 
+hand strength changes a lot in heads up compared to 6-max. 
+ 
+The Framework (AKA You Will Beat SSNL After Reading) 
+In position: 
+ 
+After my hundreds of thousands of hands that I have played heads up, I’ve come up with 
+a very simple framework for how heads up matches should be played at the start before any 
+opponent specific adjustments are made.  First I’m going to explain playing in position from the 
+button, then playing out of position from the big blind.  
+ 
+
+40
+ 
+To start with, you should be opening 100% of your hands on the button, yes even 27o.  
+This is because of two reasons: #1 we are going to make an immediate profit if our opponent 
+plays too tight out of position and #2 we want to force our opponent to play lots of hands out of 
+position against us so that we can use our positional advantage to dominate him.  Opening 100% 
+of hands will also tilt many people into doing stupid things, most commonly drastically over-
+adjusting against us.  (I will go over all adjustments/counter adjustments in the advanced section) 
+So, the framework for preflop in position is to opening every hand on the button to 3x the blinds.   
+ 
+The times our opponent calls we will be playing the flop after he acts; 99% of the time 
+they will check to us as we have the betting lead.  Here is the beauty of the framework—we are 
+going to polarize our continuation betting range.  Read that again.  Here’s what it means: take all 
+possible hand combinations that we can have on the flop (1-pair, Ace high, total misses, quads, 
+etc) and put them on a linear line ranked from worst to best.  So on the one far end of this 
+spectrum we have 3-high being the worst hand we can ever have (i.e. 23o on a KTQ board), and 
+on the other end of the spectrum we have the best possible hand we can ever have (i.e. a royal 
+flush).  Polarizing our betting range means that we will be betting with all of the hands in each 
+polar end of the spectrum; which will be categorized into #1 total misses (air) and #2 top pairs+ 
+draws.  With all other hands, the medium portion of the spectrum, we will be checking behind 
+for pot control.  Many times these type of hands will be Ace high, because it has showdown 
+value which we can try and just check down, or bottom/second pairs on the flop which #1 do not 
+want to get check raised and #2 it is actually more profitable to try and bet on a later street rather 
+than betting on the flop.  (If you’re thinking about exploitability please wait until you’ve read the 
+advanced section on adjustments.)  
+Example #1: Raise preflop with JTo, opponent calls, the flop comes 56T and we bet because we 
+have top pair.  However, if the flop were to come out 5TK we would check back because our 
+hand is not on the polar end of our hand spectrum, and depending on the turn action we may 
+decide to bet our hand there or even wait until the river.   
+Example #2: Raise preflop with AQo, opponent calls, the flop comes 78T, we would check 
+behind here because Ace high has showdown value and the likelihood that we get c/r’d off the 
+best hand is far too high.   
+ 
+Now once you have gotten a hang for which hands should be checked back, and which 
+hands should bet the flop, here are the next moves to add to your arsenal.  I’ll start with an 
+example:  
+We raise K4o otb, the flop is K23—our standard line here would be to bet our top pair and check 
+back A-high or any pair less than a King.  
+ 
+In reality, here K4 plays very similarly to the next highest pair (QQ) because our kicker 
+does not play.  So here, on this very dry board a better play would be to disguise our hand and 
+check the flop and plan on betting the turn if he checks to us, or smooth calling any turn (and 
+mostly likely any river) bet.  This play is even better if our opponent has been playing 
+aggressively vs. us when we have checked back flops during the match.  
+ 
+Conversely, it will sometimes be better to bet our very strong non-top-pair hands on the 
+flop; usually these hands will have an Ace kicker.  For example: 
+
+41
+ 
+We raise ATo otb, the flop is J♦T♠6♠—our standard line here is to check back our 
+middle pair here.  But on a board with many draws we expect that our opponent will be c/r’ing 
+draws very often; thus we do not mind calling a check raise with our strong hand and waiting for 
+a safe turn to continue.  We also do not want to give free cards away on such a drawy board.  In 
+addition, betting is superior here because we can get 3 streets of value when our opponent holds 
+a Ten also.  This is because the times that the turn & river come off completely blank, he will 
+have a very hard time folding his hand because our range in his eyes contain so many draws 
+ourselves on this board that he will assume that we are firing three barrels with a busted flush 
+draw or busted straight draw and make a big call down on the river.   
+ 
+In broader and hopefully simpler terms, we should be widening our value betting range 
+on draw heavy boards where our betting range contains many drawing hands.   
+Out of Position: 
+ 
+Playing out of position (from the big blind) heads up can be very tough when you first 
+start learning heads up play.  Thus, playing tighter from the big blind is by far the best plan when 
+just starting out.  I’m going to give you what everyone always wants… a starting hand chart!  
+Now, this is a very broad range, it’s more of a starting range where adjustments will have to be 
+made depending on every opponent.  And as much as I hate giving out a preflop “hand chart”, I 
+do think this is a good way to help you guys get an idea of what you should be playing vs. your 
+average opponent: 
+Calling range: 9T+, J9+, Q9+, K9+, K8s+, A8-AJ, A2s+, 56s+, 22-99 
+When to call OOP: 
+ 
+We want to be calling four types of hands: medium and weak strength top pairs, all mid 
+pairs, some bottom pairs vs. opponents who do not second barrel very often, strong Ace high & 
+King high draws and lastly sets on very dry boards.  I think c/calling top pairs and mid pairs 
+comes naturally to most players—however I think c/calling some draws, occasionally a set, and 
+not always c/calling bottom pairs does not come naturally, so I will give some examples of those 
+situations.  
+ 
+Villain raises to 3x the blinds and we call with K♠T♠.  Flop is A♠4♠Q♦—we flopped the 
+nut flush draw, a gutshot straight draw (we need a Jack) AND very likely 2 overcards.  Add 
+those up and you get 6 pair outs + 9 flush outs +3 Jacks = 18 outs.  The best play here is to 
+actually check and call with our King high draw.   
+ 
+Here’s why: #1 often times our King high is the best hand and our opponent will actually 
+let us get to showdown after only firing the flop.  This is because firing a second barrel on a 
+blank turn is often a losing proposition for our opponent—because he knows that we will often 
+have c/called an Ace on the flop and will not be folding to his 2nd barrel on a blank turn.  Thus, 
+he will often be “one and done” on this flop and our King high will scoop the pot at showdown.  
+#2 we want to let our opponent try and 2nd barrel us off our obvious paired Ace every time the 
+flush comes on the turn or the Jack falls and he can try to rep 2-pair or a straight.  In other words, 
+all of his good 2nd barrel cards actually give us the best hand, and get him to bluff off his stack.  
+#3 No one EVER folds a paired Ace on the flop.  That’s a smart thing to store away for future 
+
+42
+use.  Think of it from his perspective: he raises preflop, you call, and the board gives him top 
+pair.  Once he bets his hand and is c/r’d he will figure your range is {draws (mostly), 
+bottom/middle set (very rarely), complete air (sometimes)}.  Vs. this range his best play is to 
+always call or even raise and get it in now; folding never even enters his mind.  So our check 
+raise only has fold equity against a portion of his range that we are either ahead of now and will 
+try to bluff us when we make our hand (how awesome is that?) or have a gigantic number of outs 
+against (assuming he even c-bets hands like QT or 99 on A♠T♠2♦; most don’t.)  
+ 
+Sometimes the best plays are counter-intuitive, and c/calling a set can occasionally be put 
+into that category.  This will happen on boards that are extremely dry AND when those same dry 
+boards will have many “bad turns” for our perceived range—in other words, boards that have 
+many good 2nd barrel turns that can come down.  Example:  
+We flat 22 and the board comes down T52r.  This is a dry board where our c/r only gets 
+value from strong paired Tens and overpairs—a quite small range.  At the same time, this is a 
+board that will present our opponent with many good bluffing cards: any Jack, Queen, King or 
+Ace: that’s 16 cards he can bluff at OR make top pair with.  Thus on this board my play would 
+be to c/call our set of twos and look to c/r any turn that is a Jack through Ace.  If the turn blanked 
+off and our opponent still bet when checked to I would also c/r.  However if the turn was a blank 
+and our opponent checked, and the river was a Jack through Ace I will go for a c/r again, OR if 
+the river was another complete blank I would simply value bet my hand.  By taking this line, we 
+are able to capitalize on the fact that our opponent will be often bluffing, often turn top pair/2-
+pair, and at the same time we are not losing anything unless our opponent had JT-AT AND the 
+turn was a non-pairing overcard.  In other words, rarely does our choice to c/call cost us any 
+value; and almost always our c/call will be more +EV. 
+ 
+When to Check Raise: 
+ 
+We want to check raise four types of hands: 
+#1 Hands that are very strong, such as TPTK/2-pair/sets.  These are the hands when the flop 
+comes down, we get a little excited inside and want to put our whole stack in the middle.  Let me 
+say that another way: don’t ever check raise a “strong hand” that you are not comfortable putting 
+your stack in the middle with.  Often times my students will show me a hand history where they 
+have check raised a medium strength top pair, but ended up not knowing what to do when their 
+opponent put in another raise over their c/r.  Example: 
+ 
+Flatting JTo, c/ring on J86 and having the opponent put in a 3-bet.  The point to be made 
+here is that if you are going to check raise, make sure that you have a plan in your mind before 
+playing; this includes playing various turn cards and also how to react to a 3-bet on the flop. 
+#2 Check raising a draw is usually going to be the best play for our hand (and our range) on the 
+flop.  The whole point of c/ring a draw is to make our opponent fold a better hand and should be 
+done when our fold equity + hand equity is very high.  To be clear, draws include all flush draws, 
+OESD, and gutshots with at least one over card to the board (e.g. Q9 on T68).  By check raising 
+our draws and strong hands you can start to see that by c/ring a balanced range of draws + strong 
+hands our opponent will have a hard time deciphering what the correct play for him is.  It should 
+also become evident that c/ring even weak top pairs/strong middle pairs on drawy boards 
+
+43
+becomes profitable if our opponent believes our range to be primarily draws based on previous 
+hands.   
+So when we flat our 6♠7♠ and flop a flush draw on 4♦Q♠T♠, it feels natural to most players to 
+check raise—that’s not hard.  The difficult part about check raising draws is figuring out what 
+the heck to do when our opponent calls and we miss our draw on the turn.  This is tricky, there’s 
+no doubt, and often times the best line will depend on our opponent.  However a good rule of 
+thumb is that would should fire a 2nd barrel unimproved on any turn card that completes other 
+possible draws on the board (for example, an Ace, King, Nine or Eight here would all complete 
+various straight draws) or an overcard to the board (because its possible we are c/ring a hand like 
+KXs or AXs and can beat our opponent’s most likely hand—QX).  Additionally, if we have 
+noticed that our opponent tends to usually bet his middle pairs or even bottom pairs, we should 
+(dare I say) Always fire a 2nd AND 3rd barrel.  Lastly, the times that the turn does complete our 
+draw, we should usually just bet to balance the times that we c/r the other draw, yet plan on 
+representing any draw that hits on the turn.   
+#3 Occasionally the best play will be to c/r a hand even though we have completely whiffed the 
+flop.  This should only be done when you have a reason to make the play beyond “I can’t win if I 
+fold and I can’t call, so I c/r!”  The main two reasons to c/r complete air are 1) our opponent 
+continuation bets far too often and he has seen us showdown strong hands after c/ring in the past 
+or 2) our opponent is extremely weak and we can just completely run him over.  Typically the 
+best boards to c/r complete air on will be the dry boards where our opponent puts us on a narrow 
+range of {top pair+, air}, yet our opponent (for reasons stated) will be highly unlikely to call our 
+c/r or call a turn bet.  
+#4 The last type of hand that we want to c/r is bottom pairs.  This is by far the trickiest type of 
+hand to c/r because it can be hard to pick out which boards, and which opponents, this will be 
+best for.  This is actually one of the adjustments that I like to make vs. very aggressive players 
+that also continuation bet a moderately to high amount of the time (more on adjustments in the 
+advanced section).  But the basic premise is somewhat simple: our hand is too strong to 
+check/fold, yet too weak to c/call; thus our best option is to turn our hand into a semi-
+bluff/drawing hand (drawing to 2-pair/trips) and check raise instead.  Firstly, the best types of 
+bottom pair hands to do this with will be hands where our kicker is higher than the top card on 
+board (e.g. A3 on 3J8).  Secondly, we want to make sure that there will be a variety of good turn 
+cards for us to bluff (i.e. any Q-A or 7 on our 3J8 board).  And to go one step further, recognize 
+that this play will often times develop into a 3-barrel situation. It is also very important that you 
+are able to end your semi-bluff on all bad turn cards where our opponent is likely never folding 
+to a 2nd barrel. 
+Example: We flat A♠4♠, flop is 4♦T♥7♠ [we have bottom pair (2 outs for trip 4’s) + backdoor 
+flush draw + 3 aces to give us 2 pair + a large number of good 2nd and 3rd barrel cards (J,Q,K,6,)] 
+and our opponent bets into us, and we c/r.  Villain calls our c/r and the turn is a Queen.  In our 
+opponent’s mind our range for the flop c/r is {44/77/TT/89/J9/J8/68s + air hands that likely 
+contain overcards}.  Our job here is to sell him on us having a made hand.  So when the turn 
+brings a Q, we fire a 2nd barrel and our opponent flats.  At this point our opponent’s range is 
+becoming very narrow, while our range is still actually quite wide in his mind—which will make 
+it very difficult to even continue with the top of his range on the river and is a 100% a factor of 
+
+44
+us picking a good flop to c/r and a good turn card to continue on.  I would literally bet any river 
+card at this point, but frankly it’s just very hard for our opponent to continue with anything that 
+did not raise the flop or turn.   
+Reraising (3-betting) Out of Position: 
+A reraise is when we raise our opponent’s opening raise, usually to 10 times the blind, for two 
+primary reasons in HU play; to steal the four big blinds in the pot (our big blind + our opponents 
+3big blind raise), or to create large hands with our strong hands.  Reraising will also have other 
+side effects such as tilting our opponent and establishing an aggressive image for ourselves.  A 
+good starting range to work with when reraising for value would be {99-AA, KQ, AQ, AK}.  
+The reason we do not usually reraise a hand like QJ or AT, even though they look pretty, is that 
+our opponent’s calling range will usually have those hands crushed—as he is not going to call 
+our r/r with A9 or QT. Thus, it’s more profitable for us to flat call good but not great hands 
+preflop, such as AT.  Additionally, when players get far too carried away with r/ring preflop, 
+their postflop ranges become very weak and will hardly ever contain strong top pair hands—thus 
+making it easier for us to barrel them off their hand and able to call their c/r’s down lighter.   
+Only once you are comfortable playing pots out of position would I advise to start mixing in 
+bluff reraises with hands.  The types of hands that we want to put into our bluff reraise range will 
+be those that are too good to fold preflop but not good enough to call out of position: these hands 
+need fold equity to be played profitably.  An example of this type of hand would be J7s, a pretty 
+looking hand that just isn’t good enough to call with, but when reraised occasionally (such as 1/3 
+the time we get it OOP), can become a +EV hand for us.   
+Continuation betting when called after reraising needs to be done with a plan in mind for the 
+hand.  Obviously if we 3-bet AA, our opponent calls, and the flop is Q84, the plan is simple: to 
+bet, bet, bet and try and stack a worse hand.  That’s easy.  When we reraise a hand like J7s and 
+flop Q84, we need to have a plan before we start spewing chips; and a good plan starts with bet 
+sizing.  Suppose our opponent opens for 3x and we reraise our J7s to 10x, he calls and the pot is 
+now 20x the blinds, and we have 90x the blinds effective stacks.  If we start by c-betting 16x that 
+would make the pot 42x and leave us with 74x.  If we then want to bet the turn, we will be 
+leaving ourselves with a very awkward stack size on the river—one so small that a 3-barrel will 
+have virtually zero fold equity.  To avoid this situation, we need to start off betting smaller on the 
+flop, usually 12x the blinds and then betting 28x the blinds on the turn; this leaves us with a 
+healthy stack size on the river which is still big enough to be a powerful 3rd barrel.   
+Our plan needs to go beyond good bet sizing to set up multi barrels; we need to actually know 
+when to fire 1, 2, 3 or even 0 barrels.  An entire book could be written on this one section alone, 
+so I’m going to try and keep it simple, giving some basic rules of thumb.  
+ #1 We 3-bet and flop top pair/an overpair: we are going to c-bet, and fire the turn and river as 
+long as we still have top pair.  Example is AK on Kxx x x—we fire all 3 streets.   
+#2 We 3-bet and flop complete air on a dry board (96s on J75): we will c-bet.  If the turn is an 
+overcard to the board (such as an ace), we will fire a second barrel.  Whether or not a 3-barrel is 
+to be fired will depend highly on our opponent; the main question you have to ask yourself is “Is 
+he likely to fold a flopped top pair?”  If the answer is yes, then you should fire a 3rd barrel.   
+
+45
+#3 We 3-bet AK and the flop comes down very coordinated, such as 5♠6♠7♦, the best play here 
+is almost always going to be to simply c/fold.  This is because a) our opponent’s range does very 
+well on this flop (suited connectors, pairs) and b) our opponent is going to be attacking our c-bets 
+on these types of boards relentlessly.  Sometimes a c/fold is not only the best play on a given 
+board for our hand, but our hand on a given board can best used to balance the rest of our range.  
+Hopefully this section has proved a solid foundation of basics for you as you begin to play heads 
+up or as you look to revamp or upgrade your current game.   
+ 
+
+46
+The Basics:  Conclusion 
+
+ 
+The previous chapters have outlined what many would call an A-B-C game.  This game 
+is enough to beat bad players, and enough to hold your own against most average players.  It 
+outlines a cohesive overall game-plan, from choosing the right cards preflop to getting the proper 
+value from them postflop.  It preaches that the two key components of beating small stakes 
+games are: 1) getting value and 2) not paying off.  Here’s an anecdote to memorize—people are 
+bluffing you less often than you think.  Take that to heart, and remember that passive players will 
+call off their whole stack with weak hands but they won’t raise without the nuts.  So, make your 
+disciplined folds and maximize your value bets, and I should see you in the advanced section in 
+no time. 
+
