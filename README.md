@@ -63,4 +63,4 @@ PokerSimulator/
 - Build out Frontend: JC and Alex
 - Build out Backend
 - VectorDB: Srihari and Dylan
-- Build out and preserve docs: Jacob
+- Build out and preserve docs: Jacob and Shivam 
