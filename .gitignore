@@ -1,28 +1,44 @@
-# Angular specific
-/dist/
-/out-tsc/
-/tmp/
-/coverage/
-/e2e/test-output/
-/.angular/
-.angular/
+# Environment and secrets
+.env
+.env.local
+.env.*.local
 
-# Node modules and dependency files
-/node_modules/
-/package-lock.json
-/yarn.lock
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
 
-# Environment files
-/.env
+# Backend: ChromaDB / vector DB data
+backend/database/
 
-# Angular CLI and build artefacts
-/.angular-cli.json
-/.ng/
-
-# TypeScript cache
-*.tsbuildinfo
+# Node / frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
 
 # Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE (optional; remove if you want to share editor config)
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build / cache
+*.tsbuildinfo
+.cache/
