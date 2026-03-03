@@ -1,0 +1,23 @@
+GAME STATE:
+- hole_cards: ["9h", "Th"]
+- community_cards: ["7h", "8c", "2h"]
+- pot: 600
+- your_stack: 2700
+- to_call: 300
+- min_raise: 600
+- position: BTN
+- betting_round: flop
+- blinds: 50/100
+
+OPPONENTS:
+- UTG: folded preflop
+- MP: bet 300 (stack: 3400)
+- CO: called 300 (stack: 2900)
+- SB: folded preflop
+- BB: folded preflop
+
+ACTION HISTORY THIS ROUND:
+- MP bets 300
+- CO calls 300
+
+You have an open-ended straight flush draw. It's your turn. Respond with your action in JSON format.

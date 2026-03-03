@@ -1,0 +1,22 @@
+GAME STATE:
+- hole_cards: ["As", "Ah"]
+- community_cards: []
+- pot: 150
+- your_stack: 4850
+- to_call: 100
+- min_raise: 200
+- position: UTG+1
+- betting_round: preflop
+- blinds: 50/100
+
+OPPONENTS:
+- UTG: folded
+- CO: waiting (stack: 5200)
+- BTN: waiting (stack: 3100)
+- SB: posted 50 (stack: 4950)
+- BB: posted 100 (stack: 4900)
+
+ACTION HISTORY THIS ROUND:
+- UTG folds
+
+Reference Material:
