@@ -1,0 +1,29 @@
+GAME STATE:
+- hole_cards: ["Jc", "Tc"]
+- community_cards: ["Js", "8d", "4c", "3s", "9h"]
+- pot: 3800
+- your_stack: 4200
+- to_call: 1200
+- min_raise: 2400
+- position: MP
+- betting_round: river
+- blinds: 100/200
+
+OPPONENTS:
+- CO: bet 1200 (stack: 5100)
+- BTN: all-in for 950 (stack: 0)
+- BB: folded on turn
+
+PREFLOP:
+- You raised to 500, CO called, BTN called, BB called
+
+FLOP (Js 8d 4c):
+- BB checked, you bet 700, CO called, BTN called, BB folded
+
+TURN (3s):
+- You checked, CO checked, BTN checked
+
+RIVER (9h):
+- You checked, CO bet 1200, BTN shoved all-in for 950
+
+You have top pair with a straight completing on the river (QT gets there, T7 gets there). CO's line is unusual—passive on turn, leading river. BTN was short-stacked and desperate. Consider pot odds: you need to call 1200 into a pot of 5950 (side pot considerations apply). Respond with your action in JSON format.

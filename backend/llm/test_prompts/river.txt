@@ -1,0 +1,20 @@
+GAME STATE:
+- hole_cards: ["6s", "5s"]
+- community_cards: ["Ac", "Kh", "9d", "2c", "4s"]
+- pot: 2200
+- your_stack: 3500
+- to_call: 0
+- min_raise: 100
+- position: SB
+- betting_round: river
+- blinds: 50/100
+
+OPPONENTS:
+- BB: checked (stack: 2800)
+
+PREFLOP: You raised to 200 from SB, BB called
+FLOP (Ac Kh 9d): You bet 250, BB called
+TURN (2c): You bet 450, BB called
+RIVER (4s): BB checks to you
+
+You have six-high (missed your gutshot). BB has been calling passively. Respond with your action in JSON format.

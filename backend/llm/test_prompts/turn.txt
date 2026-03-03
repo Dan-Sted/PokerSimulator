@@ -1,0 +1,27 @@
+GAME STATE:
+- hole_cards: ["Kd", "Qd"]
+- community_cards: ["Ks", "7c", "3h", "Jc"]
+- pot: 1400
+- your_stack: 1800
+- to_call: 700
+- min_raise: 1400
+- position: CO
+- betting_round: turn
+- blinds: 50/100
+
+OPPONENTS:
+- MP: bet 700 (stack: 2100)
+- BTN: folded
+- SB: folded preflop
+- BB: folded on flop
+
+PREFLOP ACTION:
+- You raised to 250, MP called, others folded
+
+FLOP ACTION (board: Ks 7c 3h):
+- You bet 300, MP called
+
+TURN ACTION (board: Ks 7c 3h Jc):
+- MP leads out 700
+
+You have top pair with a good kicker, but MP is showing unexpected aggression. Respond with your action in JSON format.
