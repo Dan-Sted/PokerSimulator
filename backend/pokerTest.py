@@ -1,6 +1,7 @@
 from pypokerengine.api.game import setup_config, start_poker
 from pypokerengine.players import BasePokerPlayer
 import pypokerengine.utils.visualize_utils as U
+from agents import LLMPlayer
 
 # A bot that just calls everything (The "Fish")
 class FishPlayer(BasePokerPlayer):
@@ -33,18 +34,32 @@ class ConsolePlayer(BasePokerPlayer):
     def receive_round_result_message(self, winners, hand_info, round_state):
         print(f"Round Over! Winner: {winners[0]['name']}")
 
+def run_llm_game():
+    config = setup_config(max_round=5, initial_stack=1000, small_blind_amount=10)
+
+    config.register_player(name="Calculator", algorithm=LLMPlayer("sklansky"))
+    config.register_player(name="Shark",      algorithm=LLMPlayer("negreanu"))
+    config.register_player(name="Gambler",    algorithm=LLMPlayer("rounder"))
+    config.register_player(name="Maniac",     algorithm=LLMPlayer("seidman"))
+    config.register_player(name="Rock",       algorithm=LLMPlayer("dummies"))
+
+    game_result = start_poker(config, verbose=1)
+    print("\n--- Final Tournament Standings ---")
+    for player in game_result['players']:
+        print(f"{player['name']}: {player['stack']} chips")
+
 def run_test_game():
     config = setup_config(max_round=5, initial_stack=1000, small_blind_amount=10)
-    
+
     # Register 2 bots and 1 human (you)
     config.register_player(name="Bot_1", algorithm=FishPlayer())
     config.register_player(name="Bot_2", algorithm=FishPlayer())
     config.register_player(name="Human", algorithm=ConsolePlayer())
-    
+
     game_result = start_poker(config, verbose=1)
     print("\n--- Final Tournament Standings ---")
     for player in game_result['players']:
         print(f"{player['name']}: {player['stack']} chips")
 
 if __name__ == "__main__":
-    run_test_game()
+    run_llm_game()
