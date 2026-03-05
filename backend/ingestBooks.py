@@ -4,6 +4,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from dotenv import load_dotenv
 import chromadb
 import argparse
+import shutil
 
 load_dotenv()
 
@@ -52,18 +53,14 @@ if __name__ == "__main__":
     argparser.add_argument("--rebuild", default=False, action="store_true")
     rebuild = argparser.parse_args().rebuild
 
+    if rebuild:
+        if os.path.exists(persistent_path):
+            shutil.rmtree(persistent_path)
+            print(f"Deleted database at '{persistent_path}'")
+
     client = chromadb.PersistentClient(path=persistent_path)
 
-    if rebuild:
-        for collection_name in BOOK_COLLECTIONS.values():
-            try:
-                client.delete_collection(collection_name)
-                print(f"Deleted collection '{collection_name}'")
-            except Exception:
-                pass
-        ingest_all(client)
-    else:
-        ingest_all(client)
+    ingest_all(client)
 
     # Test query against one collection
     test_collection = client.get_or_create_collection(name="sklansky")

@@ -40,7 +40,7 @@ class LLMPlayer(BasePokerPlayer):
 
         # Gemini client
         self.gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = "gemini-3-flash-preview"
+        self.model = "gemini-2.5-flash"
 
     def declare_action(self, valid_actions, hole_card, round_state):
         # Format the game state
