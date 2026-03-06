@@ -1,12 +1,10 @@
 import os
 import json
 import re
-import time
 import chromadb
-from google import genai
-from google.genai import errors as genai_errors
 from pypokerengine.players import BasePokerPlayer
 from dotenv import load_dotenv
+from gemini_browser import init_player_chat, query_gemini_browser
 
 load_dotenv()
 
@@ -38,9 +36,9 @@ class LLMPlayer(BasePokerPlayer):
         db_client = chromadb.PersistentClient(path=PERSISTENT_PATH)
         self.collection = db_client.get_or_create_collection(name=collection_name)
 
-        # Gemini client
-        self.gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = "gemini-2.5-flash"
+        # Send this player's personality prompt to their Gemini chat session
+        # (initialize_browser must have been called before LLMPlayer is created)
+        init_player_chat(self.personality, self.system_prompt)
 
     def declare_action(self, valid_actions, hole_card, round_state):
         # Format the game state
@@ -57,30 +55,15 @@ class LLMPlayer(BasePokerPlayer):
             f"It's your turn. Respond with your action in JSON format."
         )
 
-        # Send to Gemini via chat interface (personality prompt first, then game state)
-        # Retry on transient 503/429 errors
-        response = None
-        for attempt in range(5):
-            try:
-                chat = self.gemini_client.chats.create(model=self.model)
-                chat.send_message(self.system_prompt)
-                response = chat.send_message(user_message)
-                break
-            except genai_errors.ServerError:
-                wait = 2 ** attempt
-                print(f"[{self.personality}] Gemini 503, retrying in {wait}s...")
-                time.sleep(wait)
-            except genai_errors.ClientError:
-                wait = 2 ** attempt
-                print(f"[{self.personality}] Gemini 429, retrying in {wait}s...")
-                time.sleep(wait)
-
-        if response is None:
-            # All retries exhausted — fallback to call
+        # Query Gemini via browser automation (no API rate limits)
+        try:
+            response_text = query_gemini_browser(user_message, self.personality)
+        except Exception as e:
+            print(f"[{self.personality}] Browser query failed: {e}")
             return valid_actions[1]["action"], valid_actions[1]["amount"]
 
         # Parse and validate the response
-        action, amount = self._parse_response(response.text, valid_actions)
+        action, amount = self._parse_response(response_text, valid_actions)
         return action, amount
 
     def _format_game_state(self, valid_actions, hole_card, round_state):

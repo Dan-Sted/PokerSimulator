@@ -2,6 +2,7 @@ from pypokerengine.api.game import setup_config, start_poker
 from pypokerengine.players import BasePokerPlayer
 import pypokerengine.utils.visualize_utils as U
 from agents import LLMPlayer
+from gemini_browser import initialize_browser, shutdown_browser
 import argparse
 
 # A bot that just calls everything (The "Fish")
@@ -47,10 +48,20 @@ def run_llm_game(num_players=5):
     num_players = max(2, min(num_players, len(ALL_PLAYERS)))
     config = setup_config(max_round=5, initial_stack=1000, small_blind_amount=10)
 
+    # Open one browser context per player before the game begins.
+    # LLMPlayer.__init__ sends each personality prompt, so the browser must be
+    # ready before we call config.register_player().
+    player_names = [name for name, _ in ALL_PLAYERS[:num_players]]
+    initialize_browser(player_names)
+
     for name, book in ALL_PLAYERS[:num_players]:
         config.register_player(name=name, algorithm=LLMPlayer(book))
 
-    game_result = start_poker(config, verbose=1)
+    try:
+        game_result = start_poker(config, verbose=1)
+    finally:
+        shutdown_browser()
+
     print("\n--- Final Tournament Standings ---")
     for player in game_result['players']:
         print(f"{player['name']}: {player['stack']} chips")
