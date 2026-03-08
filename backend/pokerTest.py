@@ -2,8 +2,9 @@ from pypokerengine.api.game import setup_config, start_poker
 from pypokerengine.players import BasePokerPlayer
 import pypokerengine.utils.visualize_utils as U
 from agents import LLMPlayer
-from gemini_browser import initialize_browser, shutdown_browser
 import argparse
+# gemini_browser is imported lazily inside run_llm_game so that Playwright is
+# not required when running in API mode.
 
 # A bot that just calls everything (The "Fish")
 class FishPlayer(BasePokerPlayer):
@@ -44,23 +45,26 @@ ALL_PLAYERS = [
     ("Rock",       "dummies"),
 ]
 
-def run_llm_game(num_players=5):
+def run_llm_game(num_players=5, use_browser=False):
     num_players = max(2, min(num_players, len(ALL_PLAYERS)))
     config = setup_config(max_round=5, initial_stack=1000, small_blind_amount=10)
 
-    # Open one browser context per player before the game begins.
-    # LLMPlayer.__init__ sends each personality prompt, so the browser must be
-    # ready before we call config.register_player().
-    player_names = [name for name, _ in ALL_PLAYERS[:num_players]]
-    initialize_browser(player_names)
+    if use_browser:
+        from gemini_browser import initialize_browser, shutdown_browser
+        # Open one browser context per player before the game begins.
+        # LLMPlayer.__init__ sends each personality prompt, so the browser must
+        # be ready before config.register_player() is called.
+        player_names = [name for name, _ in ALL_PLAYERS[:num_players]]
+        initialize_browser(player_names)
 
     for name, book in ALL_PLAYERS[:num_players]:
-        config.register_player(name=name, algorithm=LLMPlayer(book))
+        config.register_player(name=name, algorithm=LLMPlayer(book, use_browser=use_browser))
 
     try:
         game_result = start_poker(config, verbose=1)
     finally:
-        shutdown_browser()
+        if use_browser:
+            shutdown_browser()
 
     print("\n--- Final Tournament Standings ---")
     for player in game_result['players']:
@@ -82,5 +86,6 @@ def run_test_game():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--players", type=int, default=5, help="Number of LLM players (2-5)")
+    parser.add_argument("--browser", action="store_true", help="Use browser automation instead of the Gemini API")
     args = parser.parse_args()
-    run_llm_game(num_players=args.players)
+    run_llm_game(num_players=args.players, use_browser=args.browser)

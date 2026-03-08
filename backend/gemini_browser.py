@@ -341,25 +341,47 @@ def init_player_chat(player_id: str, system_prompt: str) -> None:
     page = _player_pages[player_id]
     print(f"[GeminiBrowser] Sending system prompt for: {player_id} ...")
 
-    # Wait for the input field to be available
-    try:
-        page.wait_for_selector(
-            "rich-textarea div[contenteditable='true']",
-            timeout=20_000,
-        )
-    except Exception:
-        raise RuntimeError(
-            f"[GeminiBrowser] Could not locate the chat input for '{player_id}' "
-            f"at URL: {page.url}"
-        )
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        # If this is a retry, refresh the page first
+        if attempt > 1:
+            print(f"[GeminiBrowser] Refreshing page for '{player_id}' and retrying (attempt {attempt}/{max_attempts})...")
+            page.goto(GEMINI_URL, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
+            try:
+                page.wait_for_load_state("networkidle", timeout=12_000)
+            except Exception:
+                pass
 
-    _focus_and_clear_input(page)
-    _inject_text(page, system_prompt)
-    _submit_message(page)
+        # Wait for the input field to be available
+        try:
+            page.wait_for_selector(
+                "rich-textarea div[contenteditable='true']",
+                timeout=20_000,
+            )
+        except Exception:
+            if attempt == max_attempts:
+                raise RuntimeError(
+                    f"[GeminiBrowser] Could not locate the chat input for '{player_id}' "
+                    f"at URL: {page.url}"
+                )
+            continue
 
-    # Wait for Gemini to acknowledge the system prompt before the game starts
-    _wait_for_response_done(page)
-    print(f"[GeminiBrowser] System prompt set for: {player_id}")
+        _focus_and_clear_input(page)
+        _inject_text(page, system_prompt)
+        _submit_message(page)
+
+        try:
+            # Wait for Gemini to acknowledge the system prompt before the game starts
+            _wait_for_response_done(page)
+            print(f"[GeminiBrowser] System prompt set for: {player_id}")
+            return
+        except Exception as e:
+            print(f"[GeminiBrowser] System prompt timed out for '{player_id}': {e}")
+            if attempt == max_attempts:
+                raise RuntimeError(
+                    f"[GeminiBrowser] Failed to send system prompt for '{player_id}' "
+                    f"after {max_attempts} attempts."
+                )
 
 
 def query_gemini_browser(prompt: str, player_id: str) -> str:
