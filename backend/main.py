@@ -3,15 +3,12 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from google import genai
-from google.genai import types
+from backend.llm.ollama_client import generate as ollama_generate, OllamaError
+import json
 
 load_dotenv()
 
-# Initialize Gemini client only when API key is set (app still runs without it)
-_client = None
-if os.getenv("GEMINI_API_KEY"):
-    _client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+# Ollama uses a local server; ensure OLLAMA_URL / OLLAMA_MODEL in .env for custom settings.
 
 app = FastAPI()
 
@@ -31,8 +28,8 @@ class PlayTurnRequest(BaseModel):
 class PokerAgent:
     def __init__(self, name, book_path):
         self.name = name
-        self.model = "gemini-2.0-flash" # High speed, low latency for games
-        self.instruction = f"You are {name}, a professional poker player. Use the provided context from your books to make decisions."
+        self.model = os.getenv("OLLAMA_MODEL")
+        self.instruction = f"You are {name}, a professional poker player. Use the provided context from your books to make decisions. Respond only with a single JSON object describing your chosen action."
 
     async def get_move(self, game_state, context_snippets):
         prompt = f"""
@@ -45,17 +42,14 @@ class PokerAgent:
         What is your move? Respond in JSON: {{"action": "CALL|FOLD|RAISE", "amount": 0, "reasoning": "..."}}
         """
         
-        if _client is None:
-            raise ValueError("GEMINI_API_KEY not set; add it to .env to use the AI agent.")
-        response = _client.models.generate_content(
-            model=self.model,
-            config=types.GenerateContentConfig(
-                system_instruction=self.instruction,
-                response_mime_type="application/json"
-            ),
-            contents=prompt
-        )
-        return response.text
+        # Call Ollama local server via helper
+        try:
+            resp = ollama_generate(prompt=prompt, system_prompt=self.instruction, model=self.model, params={"temperature":0.0, "max_tokens":256})
+        except OllamaError as e:
+            raise ValueError(f"Ollama generate failed: {e}") from e
+
+        # Return as string (could be JSON or raw text)
+        return str(resp)
 
 @app.get("/")
 def home():

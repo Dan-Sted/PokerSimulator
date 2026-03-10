@@ -8,7 +8,7 @@ import shutil
 
 load_dotenv()
 
-persistent_path = "./backend/database"
+persistent_path = "./database"
 
 # Book filename → collection name mapping
 BOOK_COLLECTIONS = {
@@ -27,7 +27,7 @@ def chunk(txt):
 def ingest_book(client, book_filename, collection_name):
     """Ingest a single book into its own collection."""
     collection = client.get_or_create_collection(name=collection_name)
-    path = f'./backend/books/{book_filename}'
+    path = f'./books/{book_filename}'
     print(f"Ingesting {book_filename} → collection '{collection_name}'")
     loader = TextLoader(path, autodetect_encoding=True)
     documents = loader.load()
@@ -61,9 +61,4 @@ if __name__ == "__main__":
     client = chromadb.PersistentClient(path=persistent_path)
 
     ingest_all(client)
-
-    # Test query against one collection
-    test_collection = client.get_or_create_collection(name="sklansky")
-    test_query = "You have J of heart and J of spades in the hole. The flop is 3 of spade, 4 of hearts, and J of clubs, whats the move"
-    docs = query(test_collection, test_query)
-    print(docs)
+    print("Ingestion complete. You can now query the collections.")

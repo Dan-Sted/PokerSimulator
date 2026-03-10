@@ -3,8 +3,12 @@ import json
 import re
 import time
 import chromadb
-from google import genai
-from google.genai import errors as genai_errors
+try:
+    # when run as a package (uvicorn backend.main) this import works
+    from backend.llm.ollama_client import generate as ollama_generate, OllamaError
+except Exception:
+    # when running scripts from within the backend/ folder (python pokerTest.py)
+    from llm.ollama_client import generate as ollama_generate, OllamaError
 from pypokerengine.players import BasePokerPlayer
 from dotenv import load_dotenv
 
@@ -38,9 +42,8 @@ class LLMPlayer(BasePokerPlayer):
         db_client = chromadb.PersistentClient(path=PERSISTENT_PATH)
         self.collection = db_client.get_or_create_collection(name=collection_name)
 
-        # Gemini client
-        self.gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = "gemini-2.5-flash"
+        # Ollama model name (local Ollama server)
+        self.model = os.getenv("OLLAMA_MODEL")
 
     def declare_action(self, valid_actions, hole_card, round_state):
         # Format the game state
@@ -57,30 +60,28 @@ class LLMPlayer(BasePokerPlayer):
             f"It's your turn. Respond with your action in JSON format."
         )
 
-        # Send to Gemini via chat interface (personality prompt first, then game state)
-        # Retry on transient 503/429 errors
-        response = None
+        # Send to Ollama (system_prompt + user_message). Retry on transient errors.
+        response_text = None
         for attempt in range(5):
             try:
-                chat = self.gemini_client.chats.create(model=self.model)
-                chat.send_message(self.system_prompt)
-                response = chat.send_message(user_message)
-                break
-            except genai_errors.ServerError:
+                resp = ollama_generate(
+                    prompt=user_message,
+                    system_prompt=self.system_prompt,
+                    model=self.model,
+                    params={"temperature": 0.0, "max_tokens": 256},
+                )
+                response_text = str(resp)
+                break  # success, exit retry loop
+            except OllamaError as e:
                 wait = 2 ** attempt
-                print(f"[{self.personality}] Gemini 503, retrying in {wait}s...")
-                time.sleep(wait)
-            except genai_errors.ClientError:
-                wait = 2 ** attempt
-                print(f"[{self.personality}] Gemini 429, retrying in {wait}s...")
+                print(f"[{self.personality}] Ollama error {e}, retrying in {wait}s...")
                 time.sleep(wait)
 
-        if response is None:
-            # All retries exhausted — fallback to call
-            return valid_actions[1]["action"], valid_actions[1]["amount"]
+        if response_text is None:
+            exit(1)  # Failed after retries, exit or handle as desired
 
         # Parse and validate the response
-        action, amount = self._parse_response(response.text, valid_actions)
+        action, amount = self._parse_response(response_text, valid_actions)
         return action, amount
 
     def _format_game_state(self, valid_actions, hole_card, round_state):
