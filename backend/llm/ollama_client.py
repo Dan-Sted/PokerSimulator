@@ -11,7 +11,12 @@ OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
 class OllamaError(Exception):
     pass
 
-def generate(prompt, system_prompt=None, model=None, timeout=60, params=None):
+"""
+generate() is a helper function to call the Ollama local server's /api/generate endpoint.
+It takes care of formatting the request, handling errors, and parsing the response.
+The response is a JSON string containing the action, amount, and reasoning.
+"""
+def generate(prompt, system_prompt=None, timeout=30, params=None):
     url = OLLAMA_URL.rstrip("/") + "/api/generate"
 
     # payload setup

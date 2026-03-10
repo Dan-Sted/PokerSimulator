@@ -67,7 +67,6 @@ class LLMPlayer(BasePokerPlayer):
                 resp = ollama_generate(
                     prompt=user_message,
                     system_prompt=self.system_prompt,
-                    model=self.model,
                     params={"temperature": 0.0, "max_tokens": 256},
                 )
                 response_text = str(resp)

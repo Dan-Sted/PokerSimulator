@@ -14,7 +14,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:11434"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,7 +28,6 @@ class PlayTurnRequest(BaseModel):
 class PokerAgent:
     def __init__(self, name, book_path):
         self.name = name
-        self.model = os.getenv("OLLAMA_MODEL")
         self.instruction = f"You are {name}, a professional poker player. Use the provided context from your books to make decisions. Respond only with a single JSON object describing your chosen action."
 
     async def get_move(self, game_state, context_snippets):
@@ -44,7 +43,7 @@ class PokerAgent:
         
         # Call Ollama local server via helper
         try:
-            resp = ollama_generate(prompt=prompt, system_prompt=self.instruction, model=self.model, params={"temperature":0.0, "max_tokens":256})
+            resp = ollama_generate(prompt=prompt, system_prompt=self.instruction, params={"temperature":0.0, "max_tokens":256})
         except OllamaError as e:
             raise ValueError(f"Ollama generate failed: {e}") from e
 
