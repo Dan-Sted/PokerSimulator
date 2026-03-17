@@ -3,10 +3,10 @@ import json
 import re
 import time
 import chromadb
-from google import genai
-from google.genai import errors as genai_errors
 from pypokerengine.players import BasePokerPlayer
 from dotenv import load_dotenv
+# gemini_browser and google.genai are imported lazily inside the class so that
+# only the package needed for the chosen mode must be installed.
 
 load_dotenv()
 
@@ -25,8 +25,9 @@ PLAYER_CONFIGS = {
 
 
 class LLMPlayer(BasePokerPlayer):
-    def __init__(self, config_key):
+    def __init__(self, config_key, use_browser=False):
         super().__init__()
+        self.use_browser = use_browser
         collection_name, self.personality, prompt_file = PLAYER_CONFIGS[config_key]
 
         # Load personality prompt
@@ -38,9 +39,16 @@ class LLMPlayer(BasePokerPlayer):
         db_client = chromadb.PersistentClient(path=PERSISTENT_PATH)
         self.collection = db_client.get_or_create_collection(name=collection_name)
 
-        # Gemini client
-        self.gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = "gemini-2.5-flash"
+        if use_browser:
+            # Send personality prompt to this player's Gemini browser chat session.
+            # initialize_browser() must have been called before LLMPlayer is created.
+            from gemini_browser import init_player_chat
+            init_player_chat(self.personality, self.system_prompt)
+        else:
+            # Set up the direct Gemini API client.
+            from google import genai
+            self.gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+            self.model = "gemini-2.5-flash"
 
     def declare_action(self, valid_actions, hole_card, round_state):
         # Format the game state
@@ -57,30 +65,38 @@ class LLMPlayer(BasePokerPlayer):
             f"It's your turn. Respond with your action in JSON format."
         )
 
-        # Send to Gemini via chat interface (personality prompt first, then game state)
-        # Retry on transient 503/429 errors
-        response = None
-        for attempt in range(5):
+        # Query Gemini — browser automation or direct API depending on mode
+        if self.use_browser:
+            from gemini_browser import query_gemini_browser
             try:
-                chat = self.gemini_client.chats.create(model=self.model)
-                chat.send_message(self.system_prompt)
-                response = chat.send_message(user_message)
-                break
-            except genai_errors.ServerError:
-                wait = 2 ** attempt
-                print(f"[{self.personality}] Gemini 503, retrying in {wait}s...")
-                time.sleep(wait)
-            except genai_errors.ClientError:
-                wait = 2 ** attempt
-                print(f"[{self.personality}] Gemini 429, retrying in {wait}s...")
-                time.sleep(wait)
+                response_text = query_gemini_browser(user_message, self.personality)
+            except Exception as e:
+                print(f"[{self.personality}] Browser query failed: {e}")
+                return valid_actions[1]["action"], valid_actions[1]["amount"]
+        else:
+            from google.genai import errors as genai_errors
+            response = None
+            for attempt in range(5):
+                try:
+                    chat = self.gemini_client.chats.create(model=self.model)
+                    chat.send_message(self.system_prompt)
+                    response = chat.send_message(user_message)
+                    break
+                except genai_errors.ServerError:
+                    wait = 2 ** attempt
+                    print(f"[{self.personality}] Gemini 503, retrying in {wait}s...")
+                    time.sleep(wait)
+                except genai_errors.ClientError:
+                    wait = 2 ** attempt
+                    print(f"[{self.personality}] Gemini 429, retrying in {wait}s...")
+                    time.sleep(wait)
 
-        if response is None:
-            # All retries exhausted — fallback to call
-            return valid_actions[1]["action"], valid_actions[1]["amount"]
+            if response is None:
+                return valid_actions[1]["action"], valid_actions[1]["amount"]
+            response_text = response.text
 
         # Parse and validate the response
-        action, amount = self._parse_response(response.text, valid_actions)
+        action, amount = self._parse_response(response_text, valid_actions)
         return action, amount
 
     def _format_game_state(self, valid_actions, hole_card, round_state):
