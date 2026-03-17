@@ -205,7 +205,7 @@ function SettingsScreen({
 }) {
   const browserSufficient = browserReady && initializedCount >= playerCount;
   const needsMoreTabs     = browserReady && initializedCount < playerCount;
-  const canStart = connected && (mode === 'api' || browserSufficient);
+  const canStart = connected && (mode === 'api' || mode === 'ollama' || browserSufficient);
   const sb = Math.round(startingStack * 0.01);
   const bb = sb * 2;
 
@@ -244,15 +244,17 @@ function SettingsScreen({
             <div>
               <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">AI Mode</p>
               <SegmentGroup
-                options={['browser', 'api']}
+                options={['ollama', 'browser', 'api']}
                 value={mode}
                 onChange={setMode}
-                labelFn={m => m === 'browser' ? '🌐 Browser' : '⚡ API'}
+                labelFn={m => m === 'browser' ? '🌐 Browser' : m === 'api' ? '⚡ API' : '🦙 Ollama'}
               />
               <p className="text-slate-500 text-xs mt-1.5">
                 {mode === 'browser'
                   ? 'Uses Gemini via Chrome — bypasses API rate limits'
-                  : 'Uses Gemini API directly — requires API key in .env'}
+                  : mode === 'api'
+                    ? 'Uses Gemini API directly — requires GEMINI_API_KEY in .env'
+                    : 'Uses a local Ollama model — requires OLLAMA_URL + OLLAMA_MODEL in .env'}
               </p>
             </div>
 
@@ -858,7 +860,7 @@ export default function PokerTable() {
           ← Settings
         </button>
         <span className="text-slate-400 text-xs px-2 py-1 rounded bg-slate-800 border border-slate-700">
-          {mode === 'browser' ? '🌐 Browser' : '⚡ API'}
+          {mode === 'browser' ? '🌐 Browser' : mode === 'api' ? '⚡ API' : '🦙 Ollama'}
         </span>
         {gameRunning && (
           <span className="text-amber-400 text-xs px-2 py-1 rounded bg-amber-950/40 border border-amber-700/40">
