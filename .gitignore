@@ -18,6 +18,9 @@ build/
 # Backend: ChromaDB / vector DB data
 backend/database/
 
+# Playwright browser session (cookies, Chrome profile — never commit)
+backend/browser_session/
+
 # Node / frontend
 node_modules/
 frontend/node_modules/

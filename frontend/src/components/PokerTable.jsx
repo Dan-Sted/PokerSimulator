@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { healthCheck, playTurn, initBrowser, shutdownBrowser, getSessionStatus, clearSession, startLogin, confirmLogin } from '../api';
 
-const PLAYER_NAMES   = ['Calculator', 'Shark', 'Gambler', 'Maniac', 'Rock'];
-const RANKS          = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
-const SUITS          = ['S','H','D','C'];
-const SMALL_BLIND    = 10;
-const BIG_BLIND      = 20;
-const STARTING_STACK = 1000;
+const PLAYER_NAMES = ['Calculator', 'Shark', 'Gambler', 'Maniac', 'Rock'];
+const RANKS        = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
+const SUITS        = ['S','H','D','C'];
+
+// Blinds scale with starting stack: 1% / 2%
+const calcBlinds = (stack) => {
+  const sb = Math.max(1, Math.round(stack * 0.01));
+  return { SB: sb, BB: sb * 2 };
+};
 
 function shuffledDeck() {
   const deck = RANKS.flatMap(r => SUITS.map(s => ({ rank: r, suit: s })));
@@ -82,27 +85,36 @@ function Card({ rank, suit, faceDown }) {
   );
 }
 
-function Seat({ name, stack, cards, isDealer, isActive, isThinking, lastAction, style }) {
+function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive, isThinking, lastAction, isFolded, isAllIn, style }) {
   return (
     <div
-      className={`absolute flex flex-col items-center rounded-xl px-2 py-1.5 min-w-[84px] transition-all
-        bg-slate-800/90 border
-        ${isActive
-          ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-green-900 border-amber-400/70'
-          : 'border-slate-600/70'}`}
+      className={`absolute flex flex-col items-center rounded-xl px-2 py-1.5 min-w-[88px] transition-all border
+        ${isFolded
+          ? 'bg-slate-900/60 border-slate-700/40 opacity-40'
+          : isActive
+            ? 'bg-slate-800/90 ring-2 ring-amber-400 ring-offset-1 ring-offset-green-900 border-amber-400/70'
+            : 'bg-slate-800/90 border-slate-600/70'}`}
       style={style}
     >
-      <span className="text-white font-semibold text-xs leading-tight">{name}</span>
+      <span className={`font-semibold text-xs leading-tight ${isFolded ? 'text-slate-500' : 'text-white'}`}>{name}</span>
       <span className="text-amber-300 text-xs leading-tight">${stack}</span>
 
       {isThinking && (
         <span className="text-slate-400 text-[10px] animate-pulse mt-0.5">thinking…</span>
       )}
-      {!isThinking && lastAction && lastAction.action !== 'blind' && (
+      {isFolded && (
+        <span className="text-[10px] font-bold uppercase text-slate-500 mt-0.5">Folded</span>
+      )}
+      {!isFolded && isAllIn && (
+        <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border mt-0.5 bg-purple-900/60 border-purple-500/40 text-purple-300">
+          All In
+        </span>
+      )}
+      {!isFolded && !isThinking && !isAllIn && lastAction && lastAction.action !== 'blind' && (
         <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border mt-0.5
           ${ACTION_BADGE[lastAction.action] || 'bg-slate-700 border-slate-600'}
           ${ACTION_TEXT[lastAction.action]  || 'text-white'}`}>
-          {lastAction.action}{lastAction.amount > 0 ? ` ${lastAction.amount}` : ''}
+          {lastAction.action}{lastAction.amount > 0 ? ` $${lastAction.amount}` : ''}
         </span>
       )}
 
@@ -113,6 +125,16 @@ function Seat({ name, stack, cards, isDealer, isActive, isThinking, lastAction, 
       {isDealer && (
         <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white text-slate-800 text-[10px] flex items-center justify-center font-bold shadow">
           D
+        </span>
+      )}
+      {!isDealer && isSmallBlind && (
+        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] flex items-center justify-center font-bold shadow">
+          SB
+        </span>
+      )}
+      {!isDealer && !isSmallBlind && isBigBlind && (
+        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-orange-500 text-white text-[9px] flex items-center justify-center font-bold shadow">
+          BB
         </span>
       )}
     </div>
@@ -195,6 +217,7 @@ function SettingsScreen({
   mode, setMode,
   playerCount, setPlayerCount,
   startingStack, setStartingStack,
+  actionSpeed, setActionSpeed,
   connected, onReconnect,
   browserReady, initializedCount, initingBrowser, onInitBrowser, onStopBrowser, shuttingDown,
   sessionStatus, onCheckSession, onClearSession, clearingSession,
@@ -206,8 +229,7 @@ function SettingsScreen({
   const browserSufficient = browserReady && initializedCount >= playerCount;
   const needsMoreTabs     = browserReady && initializedCount < playerCount;
   const canStart = connected && (mode === 'api' || mode === 'ollama' || browserSufficient);
-  const sb = Math.round(startingStack * 0.01);
-  const bb = sb * 2;
+  const { SB: sb, BB: bb } = calcBlinds(startingStack);
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6">
@@ -398,6 +420,18 @@ function SettingsScreen({
               </div>
             )}
 
+            {/* Action Speed */}
+            <div>
+              <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">Action Speed</p>
+              <SegmentGroup
+                options={[0, 1000, 2500]}
+                value={actionSpeed}
+                onChange={setActionSpeed}
+                labelFn={v => v === 0 ? '⚡ Fast' : v === 1000 ? '▶ Normal' : '🐢 Slow'}
+              />
+              <p className="text-slate-500 text-xs mt-1.5">Delay between each AI action</p>
+            </div>
+
             {/* Show Hands */}
             <div className="flex items-center justify-between py-1">
               <div>
@@ -456,13 +490,21 @@ export default function PokerTable() {
   const [connected, setConnected]           = useState(false);
   const [signingIn, setSigningIn]           = useState(false);
   const [confirmingLogin, setConfirmingLogin] = useState(false);
-  const [mode, setMode]                     = useState('browser');
+  const [mode, setMode]                     = useState(() => localStorage.getItem('pk_mode') || 'ollama');
   const [browserReady, setBrowserReady]       = useState(false);
   const [initingBrowser, setInitingBrowser]   = useState(false);
-  const [initializedCount, setInitializedCount] = useState(0); // how many player tabs are open
-  const [showHands, setShowHands]           = useState(false);
-  const [playerCount, setPlayerCount]       = useState(5);
-  const [startingStack, setStartingStack]   = useState(1000);
+  const [initializedCount, setInitializedCount] = useState(0);
+  const [showHands, setShowHands]           = useState(() => localStorage.getItem('pk_showHands') === 'true');
+  const [actionSpeed, setActionSpeed]       = useState(() => parseInt(localStorage.getItem('pk_speed') ?? '1000'));
+  const [playerCount, setPlayerCount]       = useState(() => parseInt(localStorage.getItem('pk_players') || '3'));
+  const [startingStack, setStartingStack]   = useState(() => parseInt(localStorage.getItem('pk_stack') || '1000'));
+  const [dealerIdx, setDealerIdx]           = useState(0);   // rotates each round
+  const [dealerName, setDealerName]         = useState(null); // persists for seat badge
+  const [sbName, setSbName]                 = useState(null);
+  const [bbName, setBbName]                 = useState(null);
+  const [foldedPlayers, setFoldedPlayers]   = useState(new Set());
+  const [allInPlayers, setAllInPlayers]     = useState(new Set());
+  const [roundNumber, setRoundNumber]       = useState(0);
   const [gameRunning, setGameRunning]       = useState(false);
   const [roundComplete, setRoundComplete]   = useState(false);
   const [activePlayer, setActivePlayer]     = useState(null);
@@ -480,6 +522,13 @@ export default function PokerTable() {
   const [clearingSession, setClearingSession] = useState(false);
   const stopRef       = useRef(false);
   const initAbortRef  = useRef(null);   // AbortController for in-flight browser init
+
+  // Persist settings to localStorage
+  useEffect(() => { localStorage.setItem('pk_mode', mode); }, [mode]);
+  useEffect(() => { localStorage.setItem('pk_players', playerCount); }, [playerCount]);
+  useEffect(() => { localStorage.setItem('pk_stack', startingStack); }, [startingStack]);
+  useEffect(() => { localStorage.setItem('pk_showHands', showHands); }, [showHands]);
+  useEffect(() => { localStorage.setItem('pk_speed', actionSpeed); }, [actionSpeed]);
 
   // Auto-connect to backend on mount
   useEffect(() => {
@@ -560,6 +609,8 @@ export default function PokerTable() {
     setGameLog([]); setPlayerActions({}); setPot(0); setRoundComplete(false);
     setCommunityCards([]); setHoleCards({}); setStacks({}); setLastWinner(null);
     setActivePlayer(null); setGameRunning(false);
+    setDealerIdx(0); setDealerName(null); setSbName(null); setBbName(null);
+    setFoldedPlayers(new Set()); setAllInPlayers(new Set()); setRoundNumber(0);
     setPhase('settings');
   };
 
@@ -576,6 +627,8 @@ export default function PokerTable() {
     setGameLog([]); setPlayerActions({}); setPot(0); setRoundComplete(false);
     setCommunityCards([]); setHoleCards({}); setStacks({}); setLastWinner(null);
     setActivePlayer(null); setGameRunning(false);
+    setDealerIdx(0); setDealerName(null); setSbName(null); setBbName(null);
+    setFoldedPlayers(new Set()); setAllInPlayers(new Set()); setRoundNumber(0);
     setSessionStatus(null);
   };
 
@@ -595,13 +648,17 @@ export default function PokerTable() {
       .catch(() => setSessionStatus(null));
   };
 
-  // Core game loop — accepts the initial stack values so we can carry over between rounds
-  const runGameRound = async (initialStacks) => {
+  // Core game loop
+  const runGameRound = async (initialStacks, dIdx) => {
+    const { SB, BB } = calcBlinds(startingStack);
+
     stopRef.current = false;
     setGameRunning(true);
     setRoundComplete(false);
     setGameLog([]);
     setPlayerActions({});
+    setFoldedPlayers(new Set());
+    setAllInPlayers(new Set());
     setError(null);
     setActivePlayer(null);
     setLastWinner(null);
@@ -611,11 +668,10 @@ export default function PokerTable() {
       .filter(p => (initialStacks[p] ?? startingStack) > 0);
 
     if (players.length <= 1) {
-      // Tournament over (or can't start a real hand)
       const winner = players[0] ?? null;
       if (winner) {
         setLastWinner({ name: winner, amount: 0 });
-        setGameLog([{ player: winner, street: 'result', action: 'wins', amount: 0, reasoning: 'Last player with chips — wins the tournament!' }]);
+        setGameLog([{ player: winner, street: 'result', action: 'wins', amount: 0, reasoning: 'Last player standing — tournament winner!' }]);
       }
       setActivePlayer(null);
       setGameRunning(false);
@@ -623,33 +679,42 @@ export default function PokerTable() {
       return;
     }
 
+    // ── Dealer / blind positions ─────────────────────────────────────────────
+    const n   = players.length;
+    const d   = dIdx % n;
+    const sbI = (d + 1) % n;
+    const bbI = (d + 2) % n;
+    const utgI = (d + 3) % n;
+
+    setDealerName(players[d]);
+    setSbName(players[sbI]);
+    setBbName(players[bbI]);
+
     // Deal cards
     const deck = shuffledDeck();
     const newHoleCards = {};
-    players.forEach((p, i) => {
-      newHoleCards[p] = [deck[i * 2], deck[i * 2 + 1]];
-    });
-    const communityDeck = deck.slice(players.length * 2, players.length * 2 + 5);
+    players.forEach((p, i) => { newHoleCards[p] = [deck[i * 2], deck[i * 2 + 1]]; });
+    const communityDeck = deck.slice(n * 2, n * 2 + 5);
 
     setHoleCards(newHoleCards);
     setCommunityCards([]);
     setStreet('preflop');
 
-    // Post blinds (capped at each player's actual stack)
-    const s0   = { ...initialStacks };
-    const sbAmt = Math.min(SMALL_BLIND, s0[players[0]]);
-    const bbAmt = Math.min(BIG_BLIND,   s0[players[1]]);
-    s0[players[0]] -= sbAmt;
-    s0[players[1]] -= bbAmt;
+    // Post blinds
+    const s0    = { ...initialStacks };
+    const sbAmt = Math.min(SB, s0[players[sbI]]);
+    const bbAmt = Math.min(BB, s0[players[bbI]]);
+    s0[players[sbI]] -= sbAmt;
+    s0[players[bbI]] -= bbAmt;
     let pot0 = sbAmt + bbAmt;
     setStacks({ ...s0 });
     setPot(pot0);
     setGameLog([
-      { player: players[0], street: 'preflop', action: 'blind', amount: sbAmt, reasoning: 'Posts small blind' },
-      { player: players[1], street: 'preflop', action: 'blind', amount: bbAmt, reasoning: 'Posts big blind'  },
+      { player: players[sbI], street: 'preflop', action: 'blind', amount: sbAmt, reasoning: 'Posts small blind' },
+      { player: players[bbI], street: 'preflop', action: 'blind', amount: bbAmt, reasoning: 'Posts big blind'  },
     ]);
 
-    // Finish helper — awards pot, sets winner banner, marks round done
+    // Finish helper
     const finish = (winner, winAmount, aborted = false) => {
       if (winner && !aborted) {
         setStacks(prev => ({ ...prev, [winner]: (prev[winner] ?? 0) + winAmount }));
@@ -657,7 +722,7 @@ export default function PokerTable() {
         setLastWinner({ name: winner, amount: winAmount });
         setGameLog(prev => [...prev, {
           player: winner, street: 'result', action: 'wins',
-          amount: winAmount, reasoning: `Wins the pot at ${winAmount > 0 ? 'showdown' : 'fold'}.`,
+          amount: winAmount, reasoning: `Wins the pot of $${winAmount}.`,
         }]);
       }
       setActivePlayer(null);
@@ -665,7 +730,7 @@ export default function PokerTable() {
       setRoundComplete(!aborted);
     };
 
-    // One betting street — returns { stacks, pot, stillActive }
+    // One betting street
     const runStreet = async (activePlayers, stacks_, pot_, community, streetName, initialToCall) => {
       const s = { ...stacks_ };
       let p = pot_;
@@ -700,82 +765,74 @@ export default function PokerTable() {
           result = { action: 'call', amount: needToCall, reasoning: `Error: ${msg}` };
         }
 
-        // Apply action to local stack/pot
         if (result.action === 'fold') {
           folded.add(player);
+          setFoldedPlayers(prev => new Set([...prev, player]));
         } else if (result.action === 'raise') {
-          const extra    = result.amount > 0 ? result.amount : BIG_BLIND;
-          const callPart = Math.min(needToCall, s[player]);
+          const extra     = result.amount > 0 ? result.amount : BB;
+          const callPart  = Math.min(needToCall, s[player]);
           const raisePart = Math.min(extra, s[player] - callPart);
-          const total    = callPart + raisePart;
-          s[player]          -= total;
-          p                  += total;
+          const total     = callPart + raisePart;
+          s[player]           -= total;
+          p                   += total;
           contributed[player] += total;
-          toCall              = contributed[player];
+          toCall               = contributed[player];
         } else {
           const callAmt = Math.min(needToCall, s[player]);
-          s[player]          -= callAmt;
-          p                  += callAmt;
+          s[player]           -= callAmt;
+          p                   += callAmt;
           contributed[player] += callAmt;
+        }
+
+        if (s[player] === 0 && result.action !== 'fold') {
+          setAllInPlayers(prev => new Set([...prev, player]));
         }
 
         setPlayerActions(prev => ({ ...prev, [player]: result }));
         setGameLog(prev => [...prev, { player, street: streetName, ...result }]);
         setStacks({ ...s });
         setPot(p);
+
+        if (actionSpeed > 0 && !stopRef.current) {
+          await new Promise(r => setTimeout(r, actionSpeed));
+        }
       }
 
       return { stacks: s, pot: p, stillActive: activePlayers.filter(pl => !folded.has(pl)) };
     };
 
-    // ── PREFLOP ─────────────────────────────────────────────────────────────
+    // ── PREFLOP ──────────────────────────────────────────────────────────────
     setStreet('preflop');
-    const utg = Math.min(2, players.length - 1);
-    const preflopOrder = [...players.slice(utg), ...players.slice(0, utg)];
-    let result = await runStreet(preflopOrder, s0, pot0, [], 'preflop', BIG_BLIND);
+    const preflopOrder = [...players.slice(utgI), ...players.slice(0, utgI)];
+    let result = await runStreet(preflopOrder, s0, pot0, [], 'preflop', BB);
 
     if (stopRef.current) { finish(null, 0, true); return; }
-    if (result.stillActive.length <= 1) {
-      finish(result.stillActive[0] ?? null, result.pot);
-      return;
-    }
+    if (result.stillActive.length <= 1) { finish(result.stillActive[0] ?? null, result.pot); return; }
 
-    // ── FLOP ────────────────────────────────────────────────────────────────
+    // ── FLOP ─────────────────────────────────────────────────────────────────
     const flop = communityDeck.slice(0, 3);
-    setCommunityCards(flop);
-    setStreet('flop');
-    setPlayerActions({});
+    setCommunityCards(flop); setStreet('flop'); setPlayerActions({});
     result = await runStreet(result.stillActive, result.stacks, result.pot, flop, 'flop', 0);
 
     if (stopRef.current) { finish(null, 0, true); return; }
-    if (result.stillActive.length <= 1) {
-      finish(result.stillActive[0] ?? null, result.pot);
-      return;
-    }
+    if (result.stillActive.length <= 1) { finish(result.stillActive[0] ?? null, result.pot); return; }
 
-    // ── TURN ────────────────────────────────────────────────────────────────
+    // ── TURN ─────────────────────────────────────────────────────────────────
     const turn = communityDeck.slice(0, 4);
-    setCommunityCards(turn);
-    setStreet('turn');
-    setPlayerActions({});
+    setCommunityCards(turn); setStreet('turn'); setPlayerActions({});
     result = await runStreet(result.stillActive, result.stacks, result.pot, turn, 'turn', 0);
 
     if (stopRef.current) { finish(null, 0, true); return; }
-    if (result.stillActive.length <= 1) {
-      finish(result.stillActive[0] ?? null, result.pot);
-      return;
-    }
+    if (result.stillActive.length <= 1) { finish(result.stillActive[0] ?? null, result.pot); return; }
 
-    // ── RIVER ───────────────────────────────────────────────────────────────
+    // ── RIVER ────────────────────────────────────────────────────────────────
     const river = communityDeck.slice(0, 5);
-    setCommunityCards(river);
-    setStreet('river');
-    setPlayerActions({});
+    setCommunityCards(river); setStreet('river'); setPlayerActions({});
     result = await runStreet(result.stillActive, result.stacks, result.pot, river, 'river', 0);
 
     if (stopRef.current) { finish(null, 0, true); return; }
 
-    // ── SHOWDOWN — random winner among survivors (demo) ─────────────────────
+    // ── SHOWDOWN — random winner among survivors ──────────────────────────────
     const survivors = result.stillActive;
     const winner    = survivors[Math.floor(Math.random() * survivors.length)];
     finish(winner ?? null, result.pot);
@@ -785,16 +842,23 @@ export default function PokerTable() {
     const players = PLAYER_NAMES.slice(0, playerCount);
     const init    = {};
     players.forEach(p => { init[p] = startingStack; });
-    return runGameRound(init);
+    setDealerIdx(0);
+    setRoundNumber(1);
+    return runGameRound(init, 0);
   };
 
   const handleNextRound = () => {
-    const players = PLAYER_NAMES.slice(0, playerCount);
-    const carry   = {};
+    const players   = PLAYER_NAMES.slice(0, playerCount);
+    const carry     = {};
     players.forEach(p => { carry[p] = stacks[p] ?? startingStack; });
+    const nextDealer = dealerIdx + 1;
     setCommunityCards([]);
     setHoleCards({});
-    return runGameRound(carry);
+    setFoldedPlayers(new Set());
+    setAllInPlayers(new Set());
+    setDealerIdx(nextDealer);
+    setRoundNumber(r => r + 1);
+    return runGameRound(carry, nextDealer);
   };
 
   // ── Settings phase ─────────────────────────────────────────────────────────
@@ -814,6 +878,7 @@ export default function PokerTable() {
         signingIn={signingIn} onStartLogin={handleStartLogin}
         confirmingLogin={confirmingLogin} onConfirmLogin={handleConfirmLogin}
         showHands={showHands} setShowHands={setShowHands}
+        actionSpeed={actionSpeed} setActionSpeed={setActionSpeed}
         onRestart={handleRestart}
         onStart={() => {
           setGameLog([]); setPlayerActions({}); setPot(0); setRoundComplete(false);
@@ -832,17 +897,21 @@ export default function PokerTable() {
 
   const seats = activePlayers.map((name, i) => ({
     name,
-    stack:      stacks[name] ?? startingStack,
-    cards:      showHands
-                  ? (holeCards[name] ?? [{ faceDown: true }, { faceDown: true }])
-                  : (i === 0
-                      ? (holeCards[name] ?? [{ faceDown: true }, { faceDown: true }])
-                      : [{ faceDown: true }, { faceDown: true }]),
-    isDealer:   i === 1,
-    isActive:   name === activePlayer,
-    isThinking: name === activePlayer && gameRunning,
-    lastAction: playerActions[name] ?? null,
-    style:      seatPos[i],
+    stack:        stacks[name] ?? startingStack,
+    cards:        showHands
+                    ? (holeCards[name] ?? [{ faceDown: true }, { faceDown: true }])
+                    : (name === activePlayers[0]
+                        ? (holeCards[name] ?? [{ faceDown: true }, { faceDown: true }])
+                        : [{ faceDown: true }, { faceDown: true }]),
+    isDealer:     name === dealerName,
+    isSmallBlind: name === sbName,
+    isBigBlind:   name === bbName,
+    isActive:     name === activePlayer,
+    isThinking:   name === activePlayer && gameRunning,
+    lastAction:   playerActions[name] ?? null,
+    isFolded:     foldedPlayers.has(name),
+    isAllIn:      allInPlayers.has(name),
+    style:        seatPos[i],
   }));
 
   const STREET_LABEL = { preflop: 'Pre-Flop', flop: 'Flop', turn: 'Turn', river: 'River' };
@@ -862,6 +931,11 @@ export default function PokerTable() {
         <span className="text-slate-400 text-xs px-2 py-1 rounded bg-slate-800 border border-slate-700">
           {mode === 'browser' ? '🌐 Browser' : mode === 'api' ? '⚡ API' : '🦙 Ollama'}
         </span>
+        {roundNumber > 0 && (
+          <span className="text-slate-400 text-xs px-2 py-1 rounded bg-slate-800 border border-slate-700">
+            Round {roundNumber}
+          </span>
+        )}
         {gameRunning && (
           <span className="text-amber-400 text-xs px-2 py-1 rounded bg-amber-950/40 border border-amber-700/40">
             {STREET_LABEL[street] ?? street}
