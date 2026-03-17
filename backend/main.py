@@ -59,7 +59,7 @@ class BrowserInitRequest(BaseModel):
 class PlayTurnRequest(BaseModel):
     player_name: str
     state: dict
-    mode: Literal["api", "browser"] = "browser"
+    mode: Literal["api", "browser", "ollama"] = "browser"
 
 
 def _format_state(state: dict) -> str:
@@ -225,6 +225,20 @@ async def play_turn(body: PlayTurnRequest):
             )
         from gemini_browser import query_gemini_browser
         response_text = await asyncio.to_thread(query_gemini_browser, user_prompt, body.player_name)
+        return _parse_response(response_text, valid_actions)
+
+    if body.mode == "ollama":
+        from llm.ollama_client import generate as ollama_generate, OllamaError
+        def _call_ollama():
+            try:
+                return ollama_generate(
+                    prompt=user_prompt,
+                    system_prompt=_prompts[body.player_name],
+                    params={"temperature": 0.0, "max_tokens": 256},
+                )
+            except OllamaError as e:
+                raise HTTPException(status_code=503, detail=f"Ollama error: {e}")
+        response_text = await asyncio.to_thread(_call_ollama)
         return _parse_response(response_text, valid_actions)
 
     # API mode
