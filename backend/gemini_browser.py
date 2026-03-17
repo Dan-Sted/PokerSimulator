@@ -42,6 +42,10 @@ _player_pages:    dict[str, Page]               = {}
 _loop:            "asyncio.AbstractEventLoop | None" = None
 _loop_thread:     "threading.Thread | None"     = None
 
+# ── Login-flow state (separate from the game loop) ──────────────────────────
+_login_event:     threading.Event               = threading.Event()
+_login_thread:    "threading.Thread | None"     = None
+
 
 # ── Event loop bridge (async Playwright from sync callers) ──────────────────
 
@@ -65,43 +69,44 @@ def _is_login_page(page: Page) -> bool:
     return "accounts.google.com" in url or "signin.google" in url.lower()
 
 
-async def _login_flow(pw: Playwright) -> None:
-    """Open Chrome so the user can log in; save session cookies to STATE_FILE."""
-    os.makedirs(SESSION_DIR, exist_ok=True)
-    print("\n[GeminiBrowser] No saved session found. Opening browser for first-time login...")
+def _run_login_in_thread() -> None:
+    """Runs in its own daemon thread. Opens Chrome, waits for confirm_login() signal."""
+    async def _do() -> None:
+        os.makedirs(SESSION_DIR, exist_ok=True)
+        pw = await async_playwright().start()
+        ctx = await pw.chromium.launch_persistent_context(
+            user_data_dir=SESSION_DIR,
+            channel="chrome",
+            headless=False,
+            viewport={"width": 1280, "height": 800},
+            args=["--no-sandbox", "--disable-blink-features=AutomationControlled"],
+        )
+        page = ctx.pages[0] if ctx.pages else await ctx.new_page()
+        await page.goto(GEMINI_URL, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
+        print("[GeminiBrowser] Login browser open — waiting for user to sign in via UI...")
+        # Block until the frontend calls /browser/login-confirm
+        await asyncio.to_thread(_login_event.wait)
+        try:
+            await ctx.storage_state(path=STATE_FILE)
+            print(f"[GeminiBrowser] Session saved → {STATE_FILE}")
+        except Exception as e:
+            print(f"[GeminiBrowser] Warning: could not save session: {e}")
+        await ctx.close()
+        await pw.stop()
 
-    ctx = await pw.chromium.launch_persistent_context(
-        user_data_dir=SESSION_DIR,
-        channel="chrome",
-        headless=False,
-        viewport={"width": 1280, "height": 800},
-        args=["--no-sandbox", "--disable-blink-features=AutomationControlled"],
-    )
-    page = ctx.pages[0] if ctx.pages else await ctx.new_page()
-    await page.goto(GEMINI_URL, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
-
-    print("\n" + "=" * 65)
-    print("  Please log in to Gemini in the browser window that just opened.")
-    print("  Once you see the Gemini chat interface (not a sign-in page),")
-    print("  come back here and press Enter to save your session.")
-    print("=" * 65)
-    await asyncio.to_thread(input, "\n  Press Enter when you are fully logged in > ")
-
-    await ctx.storage_state(path=STATE_FILE)
-    await ctx.close()
-    print(f"[GeminiBrowser] Session saved → {STATE_FILE}\n")
+    asyncio.run(_do())
 
 
 async def _create_player_context(player_id: str) -> tuple[BrowserContext, Page]:
     """Open an isolated BrowserContext for one player and navigate to Gemini."""
-    ctx = await _browser.new_context(
-        storage_state=STATE_FILE,
-        viewport={"width": 1100, "height": 750},
-    )
+    ctx_kwargs: dict = {"viewport": {"width": 1100, "height": 750}}
+    if os.path.exists(STATE_FILE):
+        ctx_kwargs["storage_state"] = STATE_FILE
+    ctx = await _browser.new_context(**ctx_kwargs)
     page = await ctx.new_page()
     await page.goto(GEMINI_URL, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
     try:
-        await page.wait_for_load_state("networkidle", timeout=5_000)
+        await page.wait_for_load_state("networkidle", timeout=10_000)
     except Exception:
         pass
     return ctx, page
@@ -109,6 +114,7 @@ async def _create_player_context(player_id: str) -> tuple[BrowserContext, Page]:
 
 async def _focus_and_clear_input(page: Page) -> None:
     await page.locator("rich-textarea div[contenteditable='true']").first.click()
+    await asyncio.sleep(0.3)  # stabilise focus before typing
     await page.keyboard.press("Meta+A")
     await page.keyboard.press("Backspace")
 
@@ -186,9 +192,6 @@ async def _async_initialize_browser(player_ids: list[str]) -> None:
     os.makedirs(SESSION_DIR, exist_ok=True)
     _playwright = await async_playwright().start()
 
-    if not os.path.exists(STATE_FILE):
-        await _login_flow(_playwright)
-
     _browser = await _playwright.chromium.launch(
         channel="chrome",
         headless=False,
@@ -200,8 +203,13 @@ async def _async_initialize_browser(player_ids: list[str]) -> None:
         ctx, page = await _create_player_context(player_id)
         try:
             await page.wait_for_selector(
-                "rich-textarea div[contenteditable='true']", timeout=30_000
+                "rich-textarea div[contenteditable='true']", state="visible", timeout=30_000
             )
+            # Extra networkidle wait after the input is visible to ensure page is stable
+            try:
+                await page.wait_for_load_state("networkidle", timeout=5_000)
+            except Exception:
+                pass
         except Exception:
             if _is_login_page(page):
                 await ctx.close()
@@ -212,17 +220,17 @@ async def _async_initialize_browser(player_ids: list[str]) -> None:
     results = await asyncio.gather(*[_open_one(pid) for pid in player_ids])
 
     if any(ctx is None for _, ctx, _ in results):
-        print("[GeminiBrowser] Saved session expired — re-running login flow...")
+        # Clean up any contexts that did open
         for _, ctx, _ in results:
             if ctx is not None:
                 await ctx.close()
         _player_contexts.clear()
         _player_pages.clear()
-        os.remove(STATE_FILE)
-        await _login_flow(_playwright)
-        results = await asyncio.gather(*[_open_one(pid) for pid in player_ids])
-        if any(ctx is None for _, ctx, _ in results):
-            raise RuntimeError("[GeminiBrowser] Login failed after retry.")
+        raise RuntimeError(
+            "One or more browser tabs landed on the Google sign-in page. "
+            "Please sign in to Gemini first using the 'Sign In' button in settings, "
+            "then initialize the browser again."
+        )
 
     for player_id, ctx, page in results:
         _player_contexts[player_id] = ctx
@@ -310,7 +318,45 @@ async def _async_shutdown_browser() -> None:
     print("[GeminiBrowser] Browser shutdown complete.")
 
 
+async def _async_add_player(player_id: str) -> None:
+    """Open an isolated BrowserContext for one new player in an already-running browser."""
+    if _browser is None:
+        raise RuntimeError("[GeminiBrowser] Browser not running. Call initialize_browser() first.")
+    if player_id in _player_pages:
+        return  # already initialised
+
+    print(f"[GeminiBrowser] Adding player context: {player_id} ...")
+    ctx, page = await _create_player_context(player_id)
+    try:
+        await page.wait_for_selector(
+            "rich-textarea div[contenteditable='true']", timeout=30_000
+        )
+    except Exception:
+        if _is_login_page(page):
+            await ctx.close()
+            raise RuntimeError(f"[GeminiBrowser] Session expired while adding '{player_id}'.")
+
+    _player_contexts[player_id] = ctx
+    _player_pages[player_id]    = page
+    print(f"[GeminiBrowser] Ready: {player_id}")
+
+
 # ── Public sync API ──────────────────────────────────────────────────────────
+
+def start_login_flow() -> None:
+    """Open a headed Chrome window so the user can sign into Gemini. Non-blocking."""
+    global _login_thread
+    _login_event.clear()
+    _login_thread = threading.Thread(target=_run_login_in_thread, daemon=True)
+    _login_thread.start()
+
+
+def confirm_login() -> None:
+    """Signal that the user finished signing in. Saves session and closes the login browser."""
+    _login_event.set()
+    if _login_thread is not None:
+        _login_thread.join(timeout=15)
+
 
 def initialize_browser(player_ids: list[str]) -> None:
     """Launch Chrome and open one isolated tab per player (concurrently)."""
@@ -330,6 +376,11 @@ def init_player_chat(player_id: str, system_prompt: str) -> None:
 def query_gemini_browser(prompt: str, player_id: str) -> str:
     """Send a game-state prompt and return Gemini's response as a string."""
     return _run(_async_query_gemini_browser(prompt, player_id))
+
+
+def add_player(player_id: str) -> None:
+    """Add a single player context to an already-running browser session."""
+    _run(_async_add_player(player_id))
 
 
 def shutdown_browser() -> None:
