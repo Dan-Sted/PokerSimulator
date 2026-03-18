@@ -5,9 +5,10 @@ const PLAYER_NAMES = ['Calculator', 'Shark', 'Gambler', 'Maniac', 'Rock'];
 const RANKS        = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
 const SUITS        = ['S','H','D','C'];
 
-// Blinds scale with starting stack: 1% / 2%
-const calcBlinds = (stack) => {
-  const sb = Math.max(1, Math.round(stack * 0.01));
+// Blinds scale with starting stack and blind level (increases every 3 rounds)
+const calcBlinds = (stack, level = 1) => {
+  const mult = Math.pow(1.5, level - 1);
+  const sb = Math.max(1, Math.round(stack * 0.01 * mult));
   return { SB: sb, BB: sb * 2 };
 };
 
@@ -85,32 +86,43 @@ function Card({ rank, suit, faceDown }) {
   );
 }
 
-function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive, isThinking, lastAction, isFolded, isAllIn, style }) {
+function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive, isThinking, lastAction, isFolded, isAllIn, isEliminated, isChipLeader, wins, style }) {
   return (
     <div
       className={`absolute flex flex-col items-center rounded-xl px-2 py-1.5 min-w-[88px] transition-all border
-        ${isFolded
-          ? 'bg-slate-900/60 border-slate-700/40 opacity-40'
-          : isActive
-            ? 'bg-slate-800/90 ring-2 ring-amber-400 ring-offset-1 ring-offset-green-900 border-amber-400/70'
-            : 'bg-slate-800/90 border-slate-600/70'}`}
+        ${isEliminated
+          ? 'bg-slate-950/60 border-slate-800/30 opacity-30'
+          : isFolded
+            ? 'bg-slate-900/60 border-slate-700/40 opacity-40'
+            : isActive
+              ? 'bg-slate-800/90 ring-2 ring-amber-400 ring-offset-1 ring-offset-green-900 border-amber-400/70'
+              : isChipLeader
+                ? 'bg-slate-800/90 ring-1 ring-yellow-500/60 border-yellow-600/50'
+                : 'bg-slate-800/90 border-slate-600/70'}`}
       style={style}
     >
-      <span className={`font-semibold text-xs leading-tight ${isFolded ? 'text-slate-500' : 'text-white'}`}>{name}</span>
-      <span className="text-amber-300 text-xs leading-tight">${stack}</span>
+      <div className="flex items-center gap-1">
+        {isChipLeader && !isEliminated && <span className="text-[10px]">👑</span>}
+        <span className={`font-semibold text-xs leading-tight ${isEliminated || isFolded ? 'text-slate-500' : 'text-white'}`}>{name}</span>
+      </div>
+      <span className={`text-xs leading-tight ${isEliminated ? 'text-slate-600' : 'text-amber-300'}`}>${stack}</span>
+      {wins > 0 && !isEliminated && <span className="text-[9px] text-amber-500 font-bold leading-none">×{wins} wins</span>}
 
       {isThinking && (
         <span className="text-slate-400 text-[10px] animate-pulse mt-0.5">thinking…</span>
       )}
-      {isFolded && (
+      {isEliminated && (
+        <span className="text-[10px] font-bold uppercase text-slate-600 mt-0.5">OUT</span>
+      )}
+      {!isEliminated && isFolded && (
         <span className="text-[10px] font-bold uppercase text-slate-500 mt-0.5">Folded</span>
       )}
-      {!isFolded && isAllIn && (
+      {!isEliminated && !isFolded && isAllIn && (
         <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border mt-0.5 bg-purple-900/60 border-purple-500/40 text-purple-300">
           All In
         </span>
       )}
-      {!isFolded && !isThinking && !isAllIn && lastAction && lastAction.action !== 'blind' && (
+      {!isEliminated && !isFolded && !isThinking && !isAllIn && lastAction && lastAction.action !== 'blind' && (
         <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border mt-0.5
           ${ACTION_BADGE[lastAction.action] || 'bg-slate-700 border-slate-600'}
           ${ACTION_TEXT[lastAction.action]  || 'text-white'}`}>
@@ -118,21 +130,23 @@ function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive
         </span>
       )}
 
-      <div className="flex gap-0.5 mt-1">
-        {cards?.map((c, i) => <Card key={i} {...c} />)}
-      </div>
+      {!isEliminated && (
+        <div className="flex gap-0.5 mt-1">
+          {cards?.map((c, i) => <Card key={i} {...c} />)}
+        </div>
+      )}
 
-      {isDealer && (
+      {!isEliminated && isDealer && (
         <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white text-slate-800 text-[10px] flex items-center justify-center font-bold shadow">
           D
         </span>
       )}
-      {!isDealer && isSmallBlind && (
+      {!isEliminated && !isDealer && isSmallBlind && (
         <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-blue-500 text-white text-[9px] flex items-center justify-center font-bold shadow">
           SB
         </span>
       )}
-      {!isDealer && !isSmallBlind && isBigBlind && (
+      {!isEliminated && !isDealer && !isSmallBlind && isBigBlind && (
         <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-orange-500 text-white text-[9px] flex items-center justify-center font-bold shadow">
           BB
         </span>
@@ -459,7 +473,7 @@ function SettingsScreen({
           >
             ▶ Start Game
           </button>
-          {(browserReady || connected) && (
+          {mode === 'browser' && (
             <button
               onClick={onRestart}
               disabled={shuttingDown}
@@ -505,6 +519,8 @@ export default function PokerTable() {
   const [foldedPlayers, setFoldedPlayers]   = useState(new Set());
   const [allInPlayers, setAllInPlayers]     = useState(new Set());
   const [roundNumber, setRoundNumber]       = useState(0);
+  const [blindLevel, setBlindLevel]         = useState(1);   // increases every 3 rounds
+  const [playerWins, setPlayerWins]         = useState({});  // win count per player
   const [gameRunning, setGameRunning]       = useState(false);
   const [roundComplete, setRoundComplete]   = useState(false);
   const [activePlayer, setActivePlayer]     = useState(null);
@@ -611,6 +627,7 @@ export default function PokerTable() {
     setActivePlayer(null); setGameRunning(false);
     setDealerIdx(0); setDealerName(null); setSbName(null); setBbName(null);
     setFoldedPlayers(new Set()); setAllInPlayers(new Set()); setRoundNumber(0);
+    setBlindLevel(1); setPlayerWins({});
     setPhase('settings');
   };
 
@@ -629,6 +646,7 @@ export default function PokerTable() {
     setActivePlayer(null); setGameRunning(false);
     setDealerIdx(0); setDealerName(null); setSbName(null); setBbName(null);
     setFoldedPlayers(new Set()); setAllInPlayers(new Set()); setRoundNumber(0);
+    setBlindLevel(1); setPlayerWins({});
     setSessionStatus(null);
   };
 
@@ -649,8 +667,8 @@ export default function PokerTable() {
   };
 
   // Core game loop
-  const runGameRound = async (initialStacks, dIdx) => {
-    const { SB, BB } = calcBlinds(startingStack);
+  const runGameRound = async (initialStacks, dIdx, bLevel = 1) => {
+    const { SB, BB } = calcBlinds(startingStack, bLevel);
 
     stopRef.current = false;
     setGameRunning(true);
@@ -720,6 +738,7 @@ export default function PokerTable() {
         setStacks(prev => ({ ...prev, [winner]: (prev[winner] ?? 0) + winAmount }));
         setPot(0);
         setLastWinner({ name: winner, amount: winAmount });
+        setPlayerWins(prev => ({ ...prev, [winner]: (prev[winner] ?? 0) + 1 }));
         setGameLog(prev => [...prev, {
           player: winner, street: 'result', action: 'wins',
           amount: winAmount, reasoning: `Wins the pot of $${winAmount}.`,
@@ -844,21 +863,26 @@ export default function PokerTable() {
     players.forEach(p => { init[p] = startingStack; });
     setDealerIdx(0);
     setRoundNumber(1);
-    return runGameRound(init, 0);
+    setBlindLevel(1);
+    return runGameRound(init, 0, 1);
   };
 
   const handleNextRound = () => {
-    const players   = PLAYER_NAMES.slice(0, playerCount);
-    const carry     = {};
+    const players    = PLAYER_NAMES.slice(0, playerCount);
+    const carry      = {};
     players.forEach(p => { carry[p] = stacks[p] ?? startingStack; });
     const nextDealer = dealerIdx + 1;
+    const nextRound  = roundNumber + 1;
+    // Increase blind level every 3 rounds
+    const nextLevel  = Math.floor((nextRound - 1) / 3) + 1;
     setCommunityCards([]);
     setHoleCards({});
     setFoldedPlayers(new Set());
     setAllInPlayers(new Set());
     setDealerIdx(nextDealer);
-    setRoundNumber(r => r + 1);
-    return runGameRound(carry, nextDealer);
+    setRoundNumber(nextRound);
+    setBlindLevel(nextLevel);
+    return runGameRound(carry, nextDealer, nextLevel);
   };
 
   // ── Settings phase ─────────────────────────────────────────────────────────
@@ -883,6 +907,9 @@ export default function PokerTable() {
         onStart={() => {
           setGameLog([]); setPlayerActions({}); setPot(0); setRoundComplete(false);
           setCommunityCards([]); setHoleCards({}); setStacks({}); setLastWinner(null);
+          setFoldedPlayers(new Set()); setAllInPlayers(new Set());
+          setDealerName(null); setSbName(null); setBbName(null);
+          setActivePlayer(null); setError(null);
           setPhase('game');
         }}
         error={error}
@@ -895,24 +922,38 @@ export default function PokerTable() {
   const activePlayers = PLAYER_NAMES.slice(0, playerCount);
   const seatPos       = SEAT_POSITIONS[playerCount];
 
-  const seats = activePlayers.map((name, i) => ({
-    name,
-    stack:        stacks[name] ?? startingStack,
-    cards:        showHands
-                    ? (holeCards[name] ?? [{ faceDown: true }, { faceDown: true }])
-                    : (name === activePlayers[0]
-                        ? (holeCards[name] ?? [{ faceDown: true }, { faceDown: true }])
-                        : [{ faceDown: true }, { faceDown: true }]),
-    isDealer:     name === dealerName,
-    isSmallBlind: name === sbName,
-    isBigBlind:   name === bbName,
-    isActive:     name === activePlayer,
-    isThinking:   name === activePlayer && gameRunning,
-    lastAction:   playerActions[name] ?? null,
-    isFolded:     foldedPlayers.has(name),
-    isAllIn:      allInPlayers.has(name),
-    style:        seatPos[i],
-  }));
+  // Chip leader = active (non-eliminated) player with max stack, only when stacks have diverged
+  const aliveStacks = activePlayers.filter(n => (stacks[n] ?? startingStack) > 0);
+  const stackVals   = aliveStacks.map(n => stacks[n] ?? startingStack);
+  const stacksDiverged = stackVals.length > 1 && Math.max(...stackVals) !== Math.min(...stackVals);
+  const chipLeader  = stacksDiverged
+    ? aliveStacks.reduce((a, b) => ((stacks[a] ?? startingStack) >= (stacks[b] ?? startingStack) ? a : b), aliveStacks[0])
+    : null;
+
+  const seats = activePlayers.map((name, i) => {
+    const stack = stacks[name] ?? startingStack;
+    return {
+      name,
+      stack,
+      cards:        showHands
+                      ? (holeCards[name] ?? [{ faceDown: true }, { faceDown: true }])
+                      : (name === activePlayers[0]
+                          ? (holeCards[name] ?? [{ faceDown: true }, { faceDown: true }])
+                          : [{ faceDown: true }, { faceDown: true }]),
+      isDealer:     name === dealerName,
+      isSmallBlind: name === sbName,
+      isBigBlind:   name === bbName,
+      isActive:     name === activePlayer,
+      isThinking:   name === activePlayer && gameRunning,
+      lastAction:   playerActions[name] ?? null,
+      isFolded:     foldedPlayers.has(name),
+      isAllIn:      allInPlayers.has(name),
+      isEliminated: roundNumber > 0 && stack === 0,
+      isChipLeader: name === chipLeader && roundNumber > 0,
+      wins:         playerWins[name] ?? 0,
+      style:        seatPos[i],
+    };
+  });
 
   const STREET_LABEL = { preflop: 'Pre-Flop', flop: 'Flop', turn: 'Turn', river: 'River' };
 
@@ -921,13 +962,6 @@ export default function PokerTable() {
 
       {/* Top bar */}
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-700 bg-slate-800/80 flex-shrink-0">
-        <button
-          onClick={() => setPhase('settings')}
-          disabled={gameRunning}
-          className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-sm"
-        >
-          ← Settings
-        </button>
         <span className="text-slate-400 text-xs px-2 py-1 rounded bg-slate-800 border border-slate-700">
           {mode === 'browser' ? '🌐 Browser' : mode === 'api' ? '⚡ API' : '🦙 Ollama'}
         </span>
@@ -936,6 +970,11 @@ export default function PokerTable() {
             Round {roundNumber}
           </span>
         )}
+        {roundNumber > 0 && (() => { const { SB, BB } = calcBlinds(startingStack, blindLevel); return (
+          <span className={`text-xs px-2 py-1 rounded border ${blindLevel > 1 ? 'text-orange-300 bg-orange-950/40 border-orange-700/40' : 'text-slate-400 bg-slate-800 border-slate-700'}`}>
+            Blinds ${SB}/${BB}{blindLevel > 1 ? ` · Lv.${blindLevel}` : ''}
+          </span>
+        ); })()}
         {gameRunning && (
           <span className="text-amber-400 text-xs px-2 py-1 rounded bg-amber-950/40 border border-amber-700/40">
             {STREET_LABEL[street] ?? street}
@@ -944,6 +983,20 @@ export default function PokerTable() {
         {error && <span className="text-red-400 text-xs ml-2">⚠ {error}</span>}
 
         <div className="ml-auto flex items-center gap-2">
+          {/* Speed control — usable mid-game */}
+          <div className="flex items-center gap-1 border border-slate-700 rounded-lg overflow-hidden">
+            {[{v:0,label:'⚡'},{v:1000,label:'▶'},{v:2500,label:'🐢'}].map(({v,label}) => (
+              <button
+                key={v}
+                onClick={() => setActionSpeed(v)}
+                style={{ backgroundColor: actionSpeed === v ? '#d97706' : '#1e293b' }}
+                className="px-2 py-1 text-xs border-none outline-none text-white cursor-pointer"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <button
             onClick={() => setShowHands(h => !h)}
             className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm"
@@ -1005,7 +1058,7 @@ export default function PokerTable() {
           {/* Poker Table */}
           <div
             className="relative flex-shrink-0"
-            style={{ width: 'min(70vw, 720px)', height: 'min(42vw, 430px)' }}
+            style={{ width: 'min(calc(100vw - 380px), 1000px)', height: 'min(calc(100vh - 180px), 600px)' }}
           >
             {/* Felt oval */}
             <div
@@ -1023,8 +1076,18 @@ export default function PokerTable() {
                   ? communityCards.map((c, i) => <Card key={i} {...c} />)
                   : [0,1,2,3,4].map(i => <Card key={i} faceDown />)}
               </div>
-              <div className="px-3 py-1 rounded-full bg-black/60 border border-amber-600/60 text-amber-300 font-bold text-xs">
-                Pot: ${pot}
+              <div className="flex flex-col items-center gap-0.5">
+                <div className="px-3 py-1 rounded-full bg-black/60 border border-amber-600/60 text-amber-300 font-bold text-xs">
+                  Pot: ${pot}
+                </div>
+                {gameRunning && activePlayer && (() => {
+                  const toCall = Math.max(0, seats.find(s => s.name === activePlayer)?.lastAction ? 0 : pot);
+                  const { BB } = calcBlinds(startingStack, blindLevel);
+                  if (pot > 0 && BB > 0) return (
+                    <div className="text-slate-400 text-[9px]">{(pot / BB).toFixed(1)} BB in pot</div>
+                  );
+                  return null;
+                })()}
               </div>
             </div>
 
@@ -1039,6 +1102,22 @@ export default function PokerTable() {
           <div className="px-4 py-3 border-b border-slate-700 flex-shrink-0">
             <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest">Round Actions</p>
           </div>
+          {/* Player stats strip */}
+          {Object.keys(playerWins).length > 0 && (
+            <div className="px-3 py-2 border-b border-slate-700/60 flex gap-2 flex-wrap flex-shrink-0">
+              {activePlayers.map(name => {
+                const w = playerWins[name] ?? 0;
+                const s = stacks[name] ?? startingStack;
+                const eliminated = roundNumber > 0 && s === 0;
+                return (
+                  <div key={name} className={`flex flex-col items-center text-[10px] ${eliminated ? 'opacity-30' : ''}`}>
+                    <span className="text-slate-300 font-medium">{name.slice(0,4)}</span>
+                    <span className="text-amber-400 font-bold">{w}W</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1.5">
             {gameLog.length === 0 && (
               <p className="text-slate-600 text-xs text-center mt-8">No actions yet — press Run Game to start.</p>

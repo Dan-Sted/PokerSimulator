@@ -46,6 +46,10 @@ _loop_thread:     "threading.Thread | None"     = None
 _login_event:     threading.Event               = threading.Event()
 _login_thread:    "threading.Thread | None"     = None
 
+# ── Init cancellation ────────────────────────────────────────────────────────
+_init_cancelled:  bool                          = False
+_init_task:       "asyncio.Task | None"         = None
+
 
 # ── Event loop bridge (async Playwright from sync callers) ──────────────────
 
@@ -187,10 +191,14 @@ async def _extract_last_response(page: Page, player_id: str) -> str:
 # ── Async implementations ────────────────────────────────────────────────────
 
 async def _async_initialize_browser(player_ids: list[str]) -> None:
-    global _playwright, _browser, _player_contexts, _player_pages
+    global _playwright, _browser, _player_contexts, _player_pages, _init_cancelled
 
+    _init_cancelled = False
     os.makedirs(SESSION_DIR, exist_ok=True)
     _playwright = await async_playwright().start()
+
+    if _init_cancelled:
+        await _playwright.stop(); _playwright = None; return
 
     _browser = await _playwright.chromium.launch(
         channel="chrome",
@@ -199,8 +207,14 @@ async def _async_initialize_browser(player_ids: list[str]) -> None:
     )
 
     async def _open_one(player_id: str) -> tuple:
+        if _init_cancelled:
+            return (player_id, None, None)
         print(f"[GeminiBrowser] Opening context for player: {player_id} ...")
         ctx, page = await _create_player_context(player_id)
+        if _init_cancelled:
+            try: await ctx.close()
+            except Exception: pass
+            return (player_id, None, None)
         try:
             await page.wait_for_selector(
                 "rich-textarea div[contenteditable='true']", state="visible", timeout=30_000
@@ -214,6 +228,10 @@ async def _async_initialize_browser(player_ids: list[str]) -> None:
             if _is_login_page(page):
                 await ctx.close()
                 return (player_id, None, None)
+        if _init_cancelled:
+            try: await ctx.close()
+            except Exception: pass
+            return (player_id, None, None)
         print(f"[GeminiBrowser] Ready: {player_id}")
         return (player_id, ctx, page)
 
@@ -298,7 +316,17 @@ async def _async_query_gemini_browser(prompt: str, player_id: str) -> str:
 
 
 async def _async_shutdown_browser() -> None:
-    global _playwright, _browser, _player_contexts, _player_pages
+    global _playwright, _browser, _player_contexts, _player_pages, _init_cancelled, _init_task
+    _init_cancelled = True  # signal any in-progress init to abort
+
+    # Cancel the init task if it's still running — injects CancelledError at the next await
+    if _init_task is not None and not _init_task.done():
+        _init_task.cancel()
+        try:
+            await _init_task
+        except (asyncio.CancelledError, Exception):
+            pass
+        _init_task = None
 
     for ctx in _player_contexts.values():
         try:
@@ -360,12 +388,31 @@ def confirm_login() -> None:
 
 def initialize_browser(player_ids: list[str]) -> None:
     """Launch Chrome and open one isolated tab per player (concurrently)."""
-    global _loop_thread
+    global _loop_thread, _init_task, _init_cancelled
+
+    _init_cancelled = False
     _loop_thread = threading.Thread(target=_start_event_loop, daemon=True)
     _loop_thread.start()
     while _loop is None or not _loop.is_running():
         pass
-    _run(_async_initialize_browser(player_ids))
+
+    # Schedule as a real Task so shutdown can cancel it mid-await
+    async def _schedule():
+        global _init_task
+        _init_task = asyncio.ensure_future(_async_initialize_browser(player_ids))
+        try:
+            await _init_task
+        except asyncio.CancelledError:
+            print("[GeminiBrowser] Init cancelled by shutdown.")
+        except Exception:
+            raise
+        finally:
+            _init_task = None
+
+    try:
+        _run(_schedule())
+    except asyncio.CancelledError:
+        pass  # shutdown triggered cancel — not an error
 
 
 def init_player_chat(player_id: str, system_prompt: str) -> None:
@@ -385,7 +432,12 @@ def add_player(player_id: str) -> None:
 
 def shutdown_browser() -> None:
     """Close all player contexts and shut down Chrome."""
-    _run(_async_shutdown_browser())
+    global _init_cancelled
+    _init_cancelled = True  # cancel any in-progress init immediately (sync path)
+    try:
+        _run(_async_shutdown_browser())
+    except Exception:
+        pass
     if _loop is not None:
         _loop.call_soon_threadsafe(_loop.stop)
     if _loop_thread is not None:

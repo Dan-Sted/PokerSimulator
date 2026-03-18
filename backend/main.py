@@ -161,16 +161,14 @@ def browser_clear_session():
 @app.post("/browser/shutdown")
 async def browser_shutdown():
     global _browser_ready, _initialized_players
-    if not _browser_ready:
-        return {"status": "not_initialized"}
     try:
         from gemini_browser import shutdown_browser
         await asyncio.to_thread(shutdown_browser)
-        _browser_ready = False
-        _initialized_players = set()
-        return {"status": "shutdown"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        pass  # always reset state even if shutdown errors
+    _browser_ready = False
+    _initialized_players = set()
+    return {"status": "shutdown"}
 
 
 @app.post("/browser/init")
