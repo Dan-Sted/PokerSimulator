@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Literal
 from google import genai
+from pypokerengine.engine.hand_evaluator import HandEvaluator
+from pypokerengine.engine.card import Card
 
 load_dotenv()
 
@@ -250,3 +252,55 @@ async def play_turn(body: PlayTurnRequest):
 
     response = await asyncio.to_thread(_call_api)
     return _parse_response(response.text, valid_actions)
+
+
+# ── Hand evaluation endpoint ───────────────────────────────────────────────────
+
+class CardModel(BaseModel):
+    rank: str   # '2'-'9', 'T', 'J', 'Q', 'K', 'A'
+    suit: str   # 'S', 'H', 'D', 'C'
+
+class PlayerHandModel(BaseModel):
+    name: str
+    hole_cards: list[CardModel]
+
+class EvaluateHandsRequest(BaseModel):
+    players: list[PlayerHandModel]
+    community_cards: list[CardModel]
+
+def _to_card(c: CardModel) -> Card:
+    # pypokerengine Card.from_str expects e.g. 'CA' (Club Ace), 'H2' (Heart 2)
+    return Card.from_str(c.suit + c.rank)
+
+_STRENGTH_DISPLAY = {
+    "HIGHCARD":      "High Card",
+    "ONEPAIR":       "One Pair",
+    "TWOPAIR":       "Two Pair",
+    "THREECARD":     "Three of a Kind",
+    "STRAIGHT":      "Straight",
+    "FLASH":         "Flush",
+    "FULLHOUSE":     "Full House",
+    "FOURCARD":      "Four of a Kind",
+    "STRAIGHTFLASH": "Straight Flush",
+}
+
+@app.post("/evaluate-hands")
+def evaluate_hands(body: EvaluateHandsRequest):
+    community = [_to_card(c) for c in body.community_cards]
+
+    scores: dict[str, int] = {}
+    hand_descriptions: dict[str, str] = {}
+    for player in body.players:
+        hole = [_to_card(c) for c in player.hole_cards]
+        scores[player.name] = HandEvaluator.eval_hand(hole, community)
+        rank_info = HandEvaluator.gen_hand_rank_info(hole, community)
+        strength_key = rank_info["hand"]["strength"]
+        hand_descriptions[player.name] = _STRENGTH_DISPLAY.get(strength_key, strength_key)
+
+    best = max(scores.values())
+    winners = [name for name, s in scores.items() if s == best]
+
+    return {
+        "winners": winners,
+        "hand_descriptions": hand_descriptions,
+    }

@@ -52,3 +52,11 @@ export async function playTurn(playerName, state, mode = 'browser') {
   });
   return data;
 }
+
+export async function evaluateHands(players, communityCards) {
+  const { data } = await axios.post(`${API_BASE}/evaluate-hands`, {
+    players,
+    community_cards: communityCards,
+  });
+  return data;
+}

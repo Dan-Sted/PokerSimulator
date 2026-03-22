@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { healthCheck, playTurn, initBrowser, shutdownBrowser, getSessionStatus, clearSession, startLogin, confirmLogin } from '../api';
+import { healthCheck, playTurn, evaluateHands, initBrowser, shutdownBrowser, getSessionStatus, clearSession, startLogin, confirmLogin } from '../api';
 
 const PLAYER_NAMES = ['Calculator', 'Shark', 'Gambler', 'Maniac', 'Rock'];
+const HUMAN_NAME   = 'You';
 const RANKS        = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
 const SUITS        = ['S','H','D','C'];
 
@@ -40,41 +41,66 @@ const SEAT_POSITIONS = {
     { top: '5%',      left: '8%' },
     { left: '3%',     bottom: '22%', transform: 'translateY(50%)' },
   ],
+  6: [
+    { bottom: 0,      left: '50%',  transform: 'translateX(-50%)' },          // 6 o'clock  – You
+    { top: '62%',     right: '6%'  },                                          // 4–5 o'clock
+    { top: '18%',     right: '6%'  },                                          // 1–2 o'clock
+    { top: 0,         left: '50%',  transform: 'translateX(-50%)' },           // 12 o'clock
+    { top: '18%',     left: '6%'   },                                          // 10–11 o'clock
+    { top: '62%',     left: '6%'   },                                          // 7–8 o'clock
+  ],
 };
 
 const ACTION_TEXT  = {
-  fold:  'text-red-400',
-  call:  'text-yellow-400',
-  raise: 'text-green-400',
-  blind: 'text-slate-400',
-  wins:  'text-amber-300',
-  result:'text-amber-300',
-  error: 'text-orange-400',
+  fold:     'text-red-400',
+  call:     'text-yellow-400',
+  check:    'text-blue-400',
+  raise:    'text-green-400',
+  blind:    'text-slate-400',
+  wins:     'text-emerald-300',
+  result:   'text-violet-300',
+  showdown: 'text-violet-400',
+  error:    'text-orange-400',
 };
 const ACTION_BADGE = {
   fold:  'bg-red-900/60 border-red-500/40',
   call:  'bg-yellow-900/60 border-yellow-500/40',
+  check: 'bg-blue-900/60 border-blue-500/40',
   raise: 'bg-green-900/60 border-green-500/40',
 };
 const ACTION_ROW = {
-  fold:   'bg-red-950/40 border-red-800/40',
-  call:   'bg-yellow-950/40 border-yellow-800/40',
-  raise:  'bg-green-950/40 border-green-800/40',
-  blind:  'bg-slate-800/60 border-slate-700',
-  wins:   'bg-amber-950/40 border-amber-700/40',
-  result: 'bg-amber-950/40 border-amber-700/40',
-  error:  'bg-orange-950/40 border-orange-800/40',
+  fold:     'bg-red-950/40 border-red-800/40',
+  call:     'bg-yellow-950/40 border-yellow-800/40',
+  check:    'bg-blue-950/40 border-blue-800/40',
+  raise:    'bg-green-950/40 border-green-800/40',
+  blind:    'bg-slate-800/60 border-slate-700',
+  wins:     'bg-emerald-950/40 border-emerald-700/40',
+  result:   'bg-violet-950/40 border-violet-800/40',
+  showdown: 'bg-violet-950/40 border-violet-900/40',
+  error:    'bg-orange-950/40 border-orange-800/40',
 };
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function Card({ rank, suit, faceDown }) {
+function Card({ rank, suit, faceDown, large }) {
   const SYM = { S: '♠', H: '♥', D: '♦', C: '♣' };
   const red  = suit === 'H' || suit === 'D';
   if (faceDown) {
-    return (
+    return large ? (
+      <div className="w-12 h-16 rounded-lg bg-slate-700 border border-slate-500 flex items-center justify-center text-slate-400 text-sm">
+        ?
+      </div>
+    ) : (
       <div className="w-8 h-11 rounded bg-slate-700 border border-slate-500 flex items-center justify-center text-slate-400 text-[10px]">
         ?
+      </div>
+    );
+  }
+  if (large) {
+    return (
+      <div className={`w-12 h-16 rounded-lg bg-white border border-slate-300 flex flex-col items-center justify-center text-sm shadow-lg ${red ? 'text-red-600' : 'text-slate-800'}`}>
+        <span className="font-bold leading-none text-base">{rank}</span>
+        <span className="leading-none">{SYM[suit] || suit}</span>
       </div>
     );
   }
@@ -86,7 +112,113 @@ function Card({ rank, suit, faceDown }) {
   );
 }
 
-function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive, isThinking, lastAction, isFolded, isAllIn, isEliminated, isChipLeader, wins, style }) {
+function HumanActionPanel({ toCall, stack, pot, street, onAction }) {
+  const minRaise = Math.max(toCall * 2, toCall + 1, 1);
+  const canCheck = toCall === 0;
+  const canRaise = stack > toCall;
+  const callAmt  = Math.min(toCall, stack);
+
+  const [raising, setRaising] = useState(false);
+  // Store as string so the user can freely delete and retype
+  const [rawInput, setRawInput] = useState(String(Math.min(minRaise, stack)));
+
+  const parsedAmt = parseInt(rawInput) || 0;
+  const isValid   = parsedAmt >= minRaise && parsedAmt <= stack;
+
+  const handleConfirmRaise = () => {
+    const amt = Math.max(minRaise, Math.min(stack, parsedAmt));
+    onAction('raise', amt);
+    setRaising(false);
+  };
+
+  // Info bar — same in both modes
+  const infoBar = (
+    <div className="flex items-center justify-between mb-2.5">
+      <div className="flex items-center gap-1.5">
+        <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse flex-shrink-0" />
+        <span className="text-blue-300 font-bold text-xs uppercase tracking-widest">Your Turn</span>
+        <span className="text-slate-500 text-xs ml-1">— {street}</span>
+      </div>
+      <div className="flex gap-4 text-xs">
+        <span className="text-slate-400">Pot <span className="text-amber-300 font-semibold">${pot}</span></span>
+        <span className="text-slate-400">Stack <span className="text-white font-semibold">${stack}</span></span>
+        {toCall > 0 && <span className="text-slate-400">To Call <span className="text-red-400 font-semibold">${callAmt}</span></span>}
+      </div>
+    </div>
+  );
+
+  return (
+    <div
+      style={{ background: 'linear-gradient(to top, #0f172a, #1e1b4b)', borderTop: '2px solid rgba(99,102,241,0.5)' }}
+      className="w-full flex-shrink-0 px-6 py-3"
+    >
+      {infoBar}
+
+      {raising ? (
+        <div className="flex items-center gap-3">
+          <span className="text-slate-400 text-sm whitespace-nowrap">Raise $</span>
+          <input
+            autoFocus
+            type="text"
+            inputMode="numeric"
+            value={rawInput}
+            onChange={e => setRawInput(e.target.value.replace(/[^0-9]/g, ''))}
+            onKeyDown={e => { if (e.key === 'Enter' && isValid) handleConfirmRaise(); if (e.key === 'Escape') setRaising(false); }}
+            className="w-28 px-3 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white text-sm text-center focus:outline-none focus:border-indigo-400 transition-colors"
+          />
+          {!isValid && rawInput !== '' && (
+            <span className="text-red-400 text-xs whitespace-nowrap">
+              {parsedAmt < minRaise ? `min $${minRaise}` : `max $${stack}`}
+            </span>
+          )}
+          <div className="flex gap-2 ml-auto">
+            <button
+              onClick={() => setRaising(false)}
+              className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmRaise}
+              disabled={!isValid}
+              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm transition-colors"
+            >
+              Raise ${isValid ? parsedAmt : '—'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={() => onAction('fold', 0)}
+            style={{ minWidth: '110px', background: 'rgba(153,27,27,0.6)', border: '1px solid rgba(239,68,68,0.4)' }}
+            className="py-3 rounded-2xl text-red-300 font-bold text-base hover:bg-red-800 transition-colors"
+          >
+            Fold
+          </button>
+          <button
+            onClick={() => onAction('call', callAmt)}
+            style={{ minWidth: '140px', background: 'rgba(133,77,14,0.6)', border: '1px solid rgba(234,179,8,0.4)' }}
+            className="py-3 rounded-2xl text-yellow-300 font-bold text-base hover:bg-yellow-800 transition-colors"
+          >
+            {canCheck ? 'Check' : `Call $${callAmt}`}
+          </button>
+          {canRaise && (
+            <button
+              onClick={() => { setRawInput(String(Math.min(minRaise, stack))); setRaising(true); }}
+              style={{ minWidth: '110px', background: 'rgba(30,64,175,0.6)', border: '1px solid rgba(99,102,241,0.5)' }}
+              className="py-3 rounded-2xl text-indigo-300 font-bold text-base hover:bg-indigo-800 transition-colors"
+            >
+              Raise
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive, isThinking, lastAction, isFolded, isAllIn, isEliminated, isChipLeader, isHuman, wins, inPot, style }) {
   return (
     <div
       className={`absolute flex flex-col items-center rounded-xl px-2 py-1.5 min-w-[88px] transition-all border
@@ -94,18 +226,26 @@ function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive
           ? 'bg-slate-950/60 border-slate-800/30 opacity-30'
           : isFolded
             ? 'bg-slate-900/60 border-slate-700/40 opacity-40'
-            : isActive
-              ? 'bg-slate-800/90 ring-2 ring-amber-400 ring-offset-1 ring-offset-green-900 border-amber-400/70'
-              : isChipLeader
-                ? 'bg-slate-800/90 ring-1 ring-yellow-500/60 border-yellow-600/50'
-                : 'bg-slate-800/90 border-slate-600/70'}`}
+            : isActive && isHuman
+              ? 'bg-blue-950/90 ring-2 ring-blue-400 ring-offset-1 ring-offset-green-900 border-blue-400/70'
+              : isActive
+                ? 'bg-slate-800/90 ring-2 ring-amber-400 ring-offset-1 ring-offset-green-900 border-amber-400/70'
+                : isHuman
+                  ? 'bg-blue-950/70 ring-1 ring-blue-600/50 border-blue-600/50'
+                  : isChipLeader
+                    ? 'bg-slate-800/90 ring-1 ring-yellow-500/60 border-yellow-600/50'
+                    : 'bg-slate-800/90 border-slate-600/70'}`}
       style={style}
     >
       <div className="flex items-center gap-1">
         {isChipLeader && !isEliminated && <span className="text-[10px]">👑</span>}
-        <span className={`font-semibold text-xs leading-tight ${isEliminated || isFolded ? 'text-slate-500' : 'text-white'}`}>{name}</span>
+        {isHuman && !isEliminated && <span className="text-[10px]">👤</span>}
+        <span className={`font-semibold text-xs leading-tight ${isEliminated || isFolded ? 'text-slate-500' : isHuman ? 'text-blue-300' : 'text-white'}`}>{name}</span>
       </div>
       <span className={`text-xs leading-tight ${isEliminated ? 'text-slate-600' : 'text-amber-300'}`}>${stack}</span>
+      {inPot > 0 && !isEliminated && (
+        <span className="text-[9px] text-slate-400 leading-none">in: <span className="text-slate-300">${inPot}</span></span>
+      )}
       {wins > 0 && !isEliminated && <span className="text-[9px] text-amber-500 font-bold leading-none">×{wins} wins</span>}
 
       {isThinking && (
@@ -230,6 +370,7 @@ function SegmentGroup({ options, value, onChange, labelFn }) {
 function SettingsScreen({
   mode, setMode,
   playerCount, setPlayerCount,
+  manualPlayer, setManualPlayer,
   startingStack, setStartingStack,
   actionSpeed, setActionSpeed,
   connected, onReconnect,
@@ -294,17 +435,28 @@ function SettingsScreen({
               </p>
             </div>
 
-            {/* Player Count */}
+            {/* AI Player Count */}
             <div>
-              <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">Number of Players</p>
+              <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">AI Players</p>
               <SegmentGroup
                 options={[3, 4, 5]}
                 value={playerCount}
                 onChange={setPlayerCount}
               />
               <p className="text-slate-500 text-xs mt-1.5">
-                {PLAYER_NAMES.slice(0, playerCount).join(', ')}
+                {manualPlayer
+                  ? `${HUMAN_NAME} + ${PLAYER_NAMES.slice(0, playerCount).join(', ')} (${playerCount + 1} total)`
+                  : PLAYER_NAMES.slice(0, playerCount).join(', ')}
               </p>
+            </div>
+
+            {/* Manual Player */}
+            <div className="flex items-center justify-between py-1">
+              <div>
+                <p className="text-slate-300 text-sm font-medium">Play yourself</p>
+                <p className="text-slate-500 text-xs">Add a manual player seat at the table</p>
+              </div>
+              <Toggle value={manualPlayer} onChange={setManualPlayer} />
             </div>
 
             {/* Starting Stack */}
@@ -497,6 +649,41 @@ function SettingsScreen({
   );
 }
 
+// ── Side pot helper ───────────────────────────────────────────────────────────
+// Returns an array of { amount, eligible } pots, or null when no side pots exist.
+// totalContrib  – { playerName: totalChipsPutIn } for ALL players (including folded)
+// eligible      – players still alive at showdown
+// allRoundPlayers – every player who started this round
+// allInSet      – Set of player names who went all-in
+function computeSidePots(totalContrib, eligible, allRoundPlayers, allInSet) {
+  const eligibleAllIn = eligible.filter(p => allInSet.has(p));
+  if (eligibleAllIn.length === 0) return null; // no all-in among survivors → no side pot
+
+  const allInCaps = eligibleAllIn.map(p => totalContrib[p] || 0).sort((a, b) => a - b);
+  const nonAllInMax = eligible
+    .filter(p => !allInSet.has(p))
+    .reduce((mx, p) => Math.max(mx, totalContrib[p] || 0), 0);
+
+  const caps = [...new Set([...allInCaps, nonAllInMax])].filter(c => c > 0).sort((a, b) => a - b);
+  if (caps.length === 0) return null;
+
+  const pots = [];
+  let prevCap = 0;
+  for (const cap of caps) {
+    let potAmount = 0;
+    for (const p of allRoundPlayers) {
+      const contrib = totalContrib[p] || 0;
+      potAmount += Math.min(contrib, cap) - Math.min(contrib, prevCap);
+    }
+    const potEligible = eligible.filter(p => (totalContrib[p] || 0) >= cap);
+    if (potAmount > 0) {
+      pots.push({ amount: potAmount, eligible: potEligible.length ? potEligible : eligible });
+    }
+    prevCap = cap;
+  }
+  return pots.length > 1 ? pots : null; // single pot → no split needed
+}
+
 // ── Main Game Component ───────────────────────────────────────────────────────
 
 export default function PokerTable() {
@@ -505,6 +692,10 @@ export default function PokerTable() {
   const [signingIn, setSigningIn]           = useState(false);
   const [confirmingLogin, setConfirmingLogin] = useState(false);
   const [mode, setMode]                     = useState(() => localStorage.getItem('pk_mode') || 'ollama');
+  const [manualPlayer, setManualPlayer]     = useState(() => localStorage.getItem('pk_manual') === 'true');
+  const [waitingForHuman, setWaitingForHuman] = useState(false);
+  const [humanActionState, setHumanActionState] = useState(null);
+  const humanResolverRef = useRef(null);
   const [browserReady, setBrowserReady]       = useState(false);
   const [initingBrowser, setInitingBrowser]   = useState(false);
   const [initializedCount, setInitializedCount] = useState(0);
@@ -533,18 +724,28 @@ export default function PokerTable() {
   const [communityCards, setCommunityCards] = useState([]);
   const [holeCards, setHoleCards]           = useState({});
   const [street, setStreet]                 = useState('preflop');
-  const [lastWinner, setLastWinner]         = useState(null);       // { name, amount }
+  const [lastWinner, setLastWinner]         = useState(null);       // [{ name, amount }] or null
+  const [currentContrib, setCurrentContrib] = useState({});         // chips each player has put in this round
   const [sessionStatus, setSessionStatus]   = useState(null);       // null=unchecked, true/false
   const [clearingSession, setClearingSession] = useState(false);
   const stopRef       = useRef(false);
   const initAbortRef  = useRef(null);   // AbortController for in-flight browser init
+  const gameLogRef    = useRef(null);   // scroll container for auto-scroll to bottom
 
   // Persist settings to localStorage
   useEffect(() => { localStorage.setItem('pk_mode', mode); }, [mode]);
+  useEffect(() => { localStorage.setItem('pk_manual', manualPlayer); }, [manualPlayer]);
   useEffect(() => { localStorage.setItem('pk_players', playerCount); }, [playerCount]);
   useEffect(() => { localStorage.setItem('pk_stack', startingStack); }, [startingStack]);
   useEffect(() => { localStorage.setItem('pk_showHands', showHands); }, [showHands]);
   useEffect(() => { localStorage.setItem('pk_speed', actionSpeed); }, [actionSpeed]);
+
+  // Auto-scroll game log to bottom whenever a new entry is added
+  useEffect(() => {
+    if (gameLogRef.current) {
+      gameLogRef.current.scrollTop = gameLogRef.current.scrollHeight;
+    }
+  }, [gameLog]);
 
   // Auto-connect to backend on mount
   useEffect(() => {
@@ -611,9 +812,20 @@ export default function PokerTable() {
     finally   { setShuttingDown(false); }
   };
 
+  // Unblock human if waiting for input
+  const resolveHumanWithFold = () => {
+    if (humanResolverRef.current) {
+      humanResolverRef.current({ action: 'fold', amount: 0, reasoning: 'Game stopped' });
+      humanResolverRef.current = null;
+    }
+    setWaitingForHuman(false);
+    setHumanActionState(null);
+  };
+
   // End Game: stop round → close browser → reset state → return to settings
   const handleEndGame = async () => {
     stopRef.current = true;
+    resolveHumanWithFold();
     if (initAbortRef.current) { initAbortRef.current.abort(); initAbortRef.current = null; }
     setInitingBrowser(false);
     setShuttingDown(true);
@@ -623,7 +835,7 @@ export default function PokerTable() {
     finally { setShuttingDown(false); }
     setBrowserReady(false); setInitializedCount(0);
     setGameLog([]); setPlayerActions({}); setPot(0); setRoundComplete(false);
-    setCommunityCards([]); setHoleCards({}); setStacks({}); setLastWinner(null);
+    setCommunityCards([]); setHoleCards({}); setStacks({}); setLastWinner(null); setCurrentContrib({});
     setActivePlayer(null); setGameRunning(false);
     setDealerIdx(0); setDealerName(null); setSbName(null); setBbName(null);
     setFoldedPlayers(new Set()); setAllInPlayers(new Set()); setRoundNumber(0);
@@ -633,6 +845,8 @@ export default function PokerTable() {
 
   // Restart: close browser + reset all game state (stays on settings)
   const handleRestart = async () => {
+    stopRef.current = true;
+    resolveHumanWithFold();
     if (initAbortRef.current) { initAbortRef.current.abort(); initAbortRef.current = null; }
     setInitingBrowser(false);
     setShuttingDown(true); setError(null);
@@ -642,7 +856,7 @@ export default function PokerTable() {
     finally { setShuttingDown(false); }
     setBrowserReady(false); setInitializedCount(0);
     setGameLog([]); setPlayerActions({}); setPot(0); setRoundComplete(false);
-    setCommunityCards([]); setHoleCards({}); setStacks({}); setLastWinner(null);
+    setCommunityCards([]); setHoleCards({}); setStacks({}); setLastWinner(null); setCurrentContrib({});
     setActivePlayer(null); setGameRunning(false);
     setDealerIdx(0); setDealerName(null); setSbName(null); setBbName(null);
     setFoldedPlayers(new Set()); setAllInPlayers(new Set()); setRoundNumber(0);
@@ -677,18 +891,21 @@ export default function PokerTable() {
     setPlayerActions({});
     setFoldedPlayers(new Set());
     setAllInPlayers(new Set());
+    setCurrentContrib({});
     setError(null);
     setActivePlayer(null);
     setLastWinner(null);
 
     // Only include players who still have chips
-    const players = PLAYER_NAMES.slice(0, playerCount)
-      .filter(p => (initialStacks[p] ?? startingStack) > 0);
+    const allPlayers = manualPlayer
+      ? [HUMAN_NAME, ...PLAYER_NAMES.slice(0, playerCount)]
+      : PLAYER_NAMES.slice(0, playerCount);
+    const players = allPlayers.filter(p => (initialStacks[p] ?? startingStack) > 0);
 
     if (players.length <= 1) {
       const winner = players[0] ?? null;
       if (winner) {
-        setLastWinner({ name: winner, amount: 0 });
+        setLastWinner([{ name: winner, amount: 0 }]);
         setGameLog([{ player: winner, street: 'result', action: 'wins', amount: 0, reasoning: 'Last player standing — tournament winner!' }]);
       }
       setActivePlayer(null);
@@ -725,8 +942,25 @@ export default function PokerTable() {
     s0[players[sbI]] -= sbAmt;
     s0[players[bbI]] -= bbAmt;
     let pot0 = sbAmt + bbAmt;
+
+    // Track total chips committed per player across all streets (for side pot math).
+    // Blinds are NOT pre-loaded here — they're tracked via preflopInitContrib and
+    // accumulated by the first runStreet call, so there's no double-counting.
+    const totalContrib = {};
+    players.forEach(p => { totalContrib[p] = 0; });
+    const localAllIn = new Set();
+    if (s0[players[sbI]] === 0) { localAllIn.add(players[sbI]); setAllInPlayers(prev => new Set([...prev, players[sbI]])); }
+    if (s0[players[bbI]] === 0) { localAllIn.add(players[bbI]); setAllInPlayers(prev => new Set([...prev, players[bbI]])); }
+
+    // Running per-player totals for the whole round (for log display)
+    const runningTotal = {};
+    players.forEach(p => { runningTotal[p] = 0; });
+    runningTotal[players[sbI]] = sbAmt;
+    runningTotal[players[bbI]] = bbAmt;
+
     setStacks({ ...s0 });
     setPot(pot0);
+    setCurrentContrib({ [players[sbI]]: sbAmt, [players[bbI]]: bbAmt });
     setGameLog([
       { player: players[sbI], street: 'preflop', action: 'blind', amount: sbAmt, reasoning: 'Posts small blind' },
       { player: players[bbI], street: 'preflop', action: 'blind', amount: bbAmt, reasoning: 'Posts big blind'  },
@@ -737,11 +971,11 @@ export default function PokerTable() {
       if (winner && !aborted) {
         setStacks(prev => ({ ...prev, [winner]: (prev[winner] ?? 0) + winAmount }));
         setPot(0);
-        setLastWinner({ name: winner, amount: winAmount });
+        setLastWinner([{ name: winner, amount: winAmount }]);
         setPlayerWins(prev => ({ ...prev, [winner]: (prev[winner] ?? 0) + 1 }));
         setGameLog(prev => [...prev, {
           player: winner, street: 'result', action: 'wins',
-          amount: winAmount, reasoning: `Wins the pot of $${winAmount}.`,
+          amount: winAmount, reasoning: `${winner === HUMAN_NAME ? 'Win' : 'Wins'} the pot of $${winAmount}.`,
         }]);
       }
       setActivePlayer(null);
@@ -749,18 +983,37 @@ export default function PokerTable() {
       setRoundComplete(!aborted);
     };
 
-    // One betting street
-    const runStreet = async (activePlayers, stacks_, pot_, community, streetName, initialToCall) => {
+    // One betting street — uses a proper multi-round loop so players can respond to raises.
+    // initialContributed: credit blinds so SB/BB aren't double-charged in preflop.
+    const runStreet = async (activePlayers, stacks_, pot_, community, streetName, initialToCall, initialContributed = null) => {
       const s = { ...stacks_ };
       let p = pot_;
-      const folded      = new Set();
-      const contributed = {};
-      activePlayers.forEach(pl => { contributed[pl] = 0; });
+      const folded          = new Set();
+      const contributed     = {};
+      const allInThisStreet = new Set();
+      activePlayers.forEach(pl => { contributed[pl] = initialContributed?.[pl] ?? 0; });
       let toCall = initialToCall;
 
-      for (const player of activePlayers) {
+      // Track who has acted since the last raise; everyone starts needing to act.
+      const actedSinceRaise = new Set();
+      let idx = 0;
+      const n = activePlayers.length;
+
+      while (true) {
         if (stopRef.current) break;
+
+        // Players still able to bet (not folded, still have chips)
+        const active = activePlayers.filter(pl => !folded.has(pl) && s[pl] > 0);
+        if (active.length <= 1) break;
+        // All active players have responded to the latest action → street over
+        if (active.every(pl => actedSinceRaise.has(pl))) break;
+
+        const player = activePlayers[idx % n];
+        idx++;
+
+        if (folded.has(player)) continue;
         if (s[player] <= 0) continue;
+        if (actedSinceRaise.has(player)) continue;
 
         const needToCall = Math.max(0, toCall - contributed[player]);
         setActivePlayer(player);
@@ -776,14 +1029,25 @@ export default function PokerTable() {
         };
 
         let result;
-        try {
-          result = await playTurn(player, state, mode);
-        } catch (e) {
-          const msg = e.response?.data?.detail || e.message || 'Request failed';
-          setError(msg);
-          result = { action: 'call', amount: needToCall, reasoning: `Error: ${msg}` };
+        if (player === HUMAN_NAME) {
+          result = await new Promise(resolve => {
+            setWaitingForHuman(true);
+            setHumanActionState(state);
+            humanResolverRef.current = resolve;
+          });
+          setWaitingForHuman(false);
+          setHumanActionState(null);
+        } else {
+          try {
+            result = await playTurn(player, state, mode);
+          } catch (e) {
+            const msg = e.response?.data?.detail || e.message || 'Request failed';
+            setError(msg);
+            result = { action: 'call', amount: needToCall, reasoning: `Error: ${msg}` };
+          }
         }
 
+        let actualAmount = 0;
         if (result.action === 'fold') {
           folded.add(player);
           setFoldedPlayers(prev => new Set([...prev, player]));
@@ -796,69 +1060,163 @@ export default function PokerTable() {
           p                   += total;
           contributed[player] += total;
           toCall               = contributed[player];
+          actualAmount         = total;
+          // Raise: everyone else must respond
+          actedSinceRaise.clear();
         } else {
           const callAmt = Math.min(needToCall, s[player]);
           s[player]           -= callAmt;
           p                   += callAmt;
           contributed[player] += callAmt;
+          actualAmount         = callAmt;
         }
 
+        actedSinceRaise.add(player);
+
         if (s[player] === 0 && result.action !== 'fold') {
+          allInThisStreet.add(player);
           setAllInPlayers(prev => new Set([...prev, player]));
         }
 
-        setPlayerActions(prev => ({ ...prev, [player]: result }));
-        setGameLog(prev => [...prev, { player, street: streetName, ...result }]);
+        // Show 'check' when a call costs $0
+        const displayAction = (result.action === 'call' && actualAmount === 0) ? 'check' : result.action;
+        runningTotal[player] = (runningTotal[player] || 0) + actualAmount;
+        const logEntry = { ...result, action: displayAction, amount: actualAmount, totalIn: runningTotal[player] };
+        setPlayerActions(prev => ({ ...prev, [player]: logEntry }));
+        setGameLog(prev => [...prev, { player, street: streetName, ...logEntry }]);
         setStacks({ ...s });
         setPot(p);
+        setCurrentContrib(prev => ({ ...prev, [player]: (prev[player] || 0) + actualAmount }));
 
         if (actionSpeed > 0 && !stopRef.current) {
           await new Promise(r => setTimeout(r, actionSpeed));
         }
       }
 
-      return { stacks: s, pot: p, stillActive: activePlayers.filter(pl => !folded.has(pl)) };
+      return { stacks: s, pot: p, stillActive: activePlayers.filter(pl => !folded.has(pl)), contributed, allInThisStreet };
+    };
+
+    // Accumulate each street's contributions into totalContrib and localAllIn
+    const accumulate = (streetResult) => {
+      for (const [p, amt] of Object.entries(streetResult.contributed)) {
+        totalContrib[p] = (totalContrib[p] || 0) + amt;
+      }
+      for (const p of streetResult.allInThisStreet) localAllIn.add(p);
     };
 
     // ── PREFLOP ──────────────────────────────────────────────────────────────
+    // Credit blinds as already-contributed so SB/BB aren't charged again
+    const preflopInitContrib = {};
+    players.forEach(p => { preflopInitContrib[p] = 0; });
+    preflopInitContrib[players[sbI]] = sbAmt;
+    preflopInitContrib[players[bbI]] = bbAmt;
+
     setStreet('preflop');
     const preflopOrder = [...players.slice(utgI), ...players.slice(0, utgI)];
-    let result = await runStreet(preflopOrder, s0, pot0, [], 'preflop', BB);
+    let result = await runStreet(preflopOrder, s0, pot0, [], 'preflop', BB, preflopInitContrib);
+    accumulate(result);
 
     if (stopRef.current) { finish(null, 0, true); return; }
     if (result.stillActive.length <= 1) { finish(result.stillActive[0] ?? null, result.pot); return; }
 
+    // Helper: reveal community cards and run a betting street, but SKIP betting
+    // if ≤1 player still has chips (everyone else is all-in — no meaningful action).
+    const runOrSkip = async (streetName, community) => {
+      setCommunityCards(community);
+      setStreet(streetName);
+      setPlayerActions({});
+      const canBet = result.stillActive.filter(p => result.stacks[p] > 0);
+      if (canBet.length <= 1) {
+        // All opponents are all-in — no betting possible, just reveal cards
+        if (actionSpeed > 0 && !stopRef.current) {
+          await new Promise(r => setTimeout(r, Math.max(actionSpeed / 2, 400)));
+        }
+        return result; // unchanged stacks / pot
+      }
+      const newResult = await runStreet(result.stillActive, result.stacks, result.pot, community, streetName, 0);
+      accumulate(newResult);
+      return newResult;
+    };
+
     // ── FLOP ─────────────────────────────────────────────────────────────────
-    const flop = communityDeck.slice(0, 3);
-    setCommunityCards(flop); setStreet('flop'); setPlayerActions({});
-    result = await runStreet(result.stillActive, result.stacks, result.pot, flop, 'flop', 0);
+    result = await runOrSkip('flop', communityDeck.slice(0, 3));
 
     if (stopRef.current) { finish(null, 0, true); return; }
     if (result.stillActive.length <= 1) { finish(result.stillActive[0] ?? null, result.pot); return; }
 
     // ── TURN ─────────────────────────────────────────────────────────────────
-    const turn = communityDeck.slice(0, 4);
-    setCommunityCards(turn); setStreet('turn'); setPlayerActions({});
-    result = await runStreet(result.stillActive, result.stacks, result.pot, turn, 'turn', 0);
+    result = await runOrSkip('turn', communityDeck.slice(0, 4));
 
     if (stopRef.current) { finish(null, 0, true); return; }
     if (result.stillActive.length <= 1) { finish(result.stillActive[0] ?? null, result.pot); return; }
 
     // ── RIVER ────────────────────────────────────────────────────────────────
+    result = await runOrSkip('river', communityDeck.slice(0, 5));
     const river = communityDeck.slice(0, 5);
-    setCommunityCards(river); setStreet('river'); setPlayerActions({});
-    result = await runStreet(result.stillActive, result.stacks, result.pot, river, 'river', 0);
 
     if (stopRef.current) { finish(null, 0, true); return; }
 
-    // ── SHOWDOWN — random winner among survivors ──────────────────────────────
+    // ── SHOWDOWN — evaluate hands, compute side pots, award chips ────────────
     const survivors = result.stillActive;
-    const winner    = survivors[Math.floor(Math.random() * survivors.length)];
-    finish(winner ?? null, result.pot);
+    try {
+      const payload = survivors.map(name => ({ name, hole_cards: newHoleCards[name] }));
+      const { winners, hand_descriptions } = await evaluateHands(payload, river);
+
+      // Log each player's hand description
+      survivors.forEach(name => {
+        if (hand_descriptions?.[name]) {
+          setGameLog(prev => [...prev, {
+            player: name, street: 'showdown', action: 'result',
+            amount: 0, reasoning: hand_descriptions[name],
+          }]);
+        }
+      });
+
+      // Check if side pots are needed (only when ≥1 survivor is all-in)
+      const sidePots = computeSidePots(totalContrib, survivors, players, localAllIn);
+
+      if (sidePots) {
+        // Award each pot to the best hand among eligible players
+        const finalStacks = { ...result.stacks };
+        const allWins = [];
+        for (const { amount, eligible } of sidePots) {
+          let potWinner;
+          if (eligible.length === 1) {
+            potWinner = eligible[0];
+          } else {
+            const eligPayload = eligible.map(name => ({ name, hole_cards: newHoleCards[name] }));
+            const { winners: potWinners } = await evaluateHands(eligPayload, river);
+            potWinner = potWinners[0] ?? eligible[0];
+          }
+          finalStacks[potWinner] = (finalStacks[potWinner] ?? 0) + amount;
+          allWins.push({ name: potWinner, amount });
+          setPlayerWins(prev => ({ ...prev, [potWinner]: (prev[potWinner] ?? 0) + 1 }));
+          setGameLog(prev => [...prev, {
+            player: potWinner, street: 'result', action: 'wins',
+            amount, reasoning: `${potWinner === HUMAN_NAME ? 'Win' : 'Wins'} pot of $${amount}.`,
+          }]);
+        }
+        setStacks(finalStacks);
+        setPot(0);
+        setLastWinner(allWins);
+        setActivePlayer(null);
+        setGameRunning(false);
+        setRoundComplete(true);
+      } else {
+        // Single pot — award to best hand overall
+        const winner = winners[0] ?? survivors[0] ?? null;
+        finish(winner, result.pot);
+      }
+    } catch {
+      // Fallback: first survivor takes the pot
+      finish(survivors[0] ?? null, result.pot);
+    }
   };
 
   const handleRunGame = () => {
-    const players = PLAYER_NAMES.slice(0, playerCount);
+    const players = manualPlayer
+      ? [HUMAN_NAME, ...PLAYER_NAMES.slice(0, playerCount)]
+      : PLAYER_NAMES.slice(0, playerCount);
     const init    = {};
     players.forEach(p => { init[p] = startingStack; });
     setDealerIdx(0);
@@ -868,7 +1226,9 @@ export default function PokerTable() {
   };
 
   const handleNextRound = () => {
-    const players    = PLAYER_NAMES.slice(0, playerCount);
+    const players    = manualPlayer
+      ? [HUMAN_NAME, ...PLAYER_NAMES.slice(0, playerCount)]
+      : PLAYER_NAMES.slice(0, playerCount);
     const carry      = {};
     players.forEach(p => { carry[p] = stacks[p] ?? startingStack; });
     const nextDealer = dealerIdx + 1;
@@ -892,6 +1252,7 @@ export default function PokerTable() {
       <SettingsScreen
         mode={mode} setMode={setMode}
         playerCount={playerCount} setPlayerCount={setPlayerCount}
+        manualPlayer={manualPlayer} setManualPlayer={setManualPlayer}
         startingStack={startingStack} setStartingStack={setStartingStack}
         connected={connected} onReconnect={handleReconnect}
         browserReady={browserReady} initializedCount={initializedCount}
@@ -919,8 +1280,10 @@ export default function PokerTable() {
 
   // ── Game phase ─────────────────────────────────────────────────────────────
 
-  const activePlayers = PLAYER_NAMES.slice(0, playerCount);
-  const seatPos       = SEAT_POSITIONS[playerCount];
+  const activePlayers = manualPlayer
+    ? [HUMAN_NAME, ...PLAYER_NAMES.slice(0, playerCount)]
+    : PLAYER_NAMES.slice(0, playerCount);
+  const seatPos       = SEAT_POSITIONS[activePlayers.length];
 
   // Chip leader = active (non-eliminated) player with max stack, only when stacks have diverged
   const aliveStacks = activePlayers.filter(n => (stacks[n] ?? startingStack) > 0);
@@ -932,25 +1295,26 @@ export default function PokerTable() {
 
   const seats = activePlayers.map((name, i) => {
     const stack = stacks[name] ?? startingStack;
+    const isHuman = name === HUMAN_NAME;
     return {
       name,
       stack,
-      cards:        showHands
+      isHuman,
+      cards:        (showHands || isHuman)
                       ? (holeCards[name] ?? [{ faceDown: true }, { faceDown: true }])
-                      : (name === activePlayers[0]
-                          ? (holeCards[name] ?? [{ faceDown: true }, { faceDown: true }])
-                          : [{ faceDown: true }, { faceDown: true }]),
+                      : [{ faceDown: true }, { faceDown: true }],
       isDealer:     name === dealerName,
       isSmallBlind: name === sbName,
       isBigBlind:   name === bbName,
       isActive:     name === activePlayer,
-      isThinking:   name === activePlayer && gameRunning,
+      isThinking:   name === activePlayer && gameRunning && !isHuman,
       lastAction:   playerActions[name] ?? null,
       isFolded:     foldedPlayers.has(name),
       isAllIn:      allInPlayers.has(name),
-      isEliminated: roundNumber > 0 && stack === 0,
-      isChipLeader: name === chipLeader && roundNumber > 0,
+      isEliminated: roundNumber > 0 && stack === 0 && !allInPlayers.has(name),
+      isChipLeader: name === chipLeader && roundNumber > 0 && !gameRunning,
       wins:         playerWins[name] ?? 0,
+      inPot:        currentContrib[name] ?? 0,
       style:        seatPos[i],
     };
   });
@@ -1014,7 +1378,7 @@ export default function PokerTable() {
 
           {gameRunning ? (
             <button
-              onClick={() => { stopRef.current = true; }}
+              onClick={() => { stopRef.current = true; resolveHumanWithFold(); }}
               className="px-4 py-1.5 rounded-lg bg-red-700 hover:bg-red-600 font-semibold text-sm"
             >
               ⏹ Stop
@@ -1043,23 +1407,24 @@ export default function PokerTable() {
         {/* Left — poker table */}
         <div className="flex flex-col items-center justify-center flex-1 p-6 gap-4 min-w-0">
 
-          {/* Winner banner */}
-          {lastWinner && !gameRunning && (
-            <div className="w-full max-w-xl px-5 py-3 rounded-xl bg-amber-950/60 border border-amber-600/50 text-center flex-shrink-0">
-              <p className="text-amber-300 font-bold text-lg">
-                🏆 {lastWinner.name} wins ${lastWinner.amount}!
-              </p>
-              <p className="text-amber-500/80 text-xs mt-0.5">
-                Press <span className="text-green-400 font-semibold">Next Round</span> to keep playing with current chip counts.
-              </p>
-            </div>
-          )}
-
           {/* Poker Table */}
           <div
             className="relative flex-shrink-0"
             style={{ width: 'min(calc(100vw - 380px), 1000px)', height: 'min(calc(100vh - 180px), 600px)' }}
           >
+            {/* Winner banner — absolute overlay so it never shifts layout */}
+            {lastWinner && !gameRunning && (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-6 py-2.5 rounded-xl bg-amber-950/95 border border-amber-600/60 text-center shadow-xl whitespace-nowrap">
+                {lastWinner.map(({ name, amount }, i) => (
+                  <p key={i} className="text-amber-300 font-bold text-base">
+                    🏆 {name} {name === HUMAN_NAME ? 'win' : 'wins'} ${amount}!
+                  </p>
+                ))}
+                <p className="text-amber-600/80 text-xs mt-0.5">
+                  Press <span className="text-green-400 font-semibold">Next Round</span> to keep playing
+                </p>
+              </div>
+            )}
             {/* Felt oval */}
             <div
               className="absolute rounded-[50%] border-[12px] border-amber-900 shadow-2xl"
@@ -1070,21 +1435,20 @@ export default function PokerTable() {
             />
 
             {/* Community cards + pot */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
-              <div className="flex gap-1.5">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-3">
+              <div className="flex gap-2">
                 {communityCards.length > 0
-                  ? communityCards.map((c, i) => <Card key={i} {...c} />)
-                  : [0,1,2,3,4].map(i => <Card key={i} faceDown />)}
+                  ? communityCards.map((c, i) => <Card key={i} {...c} large />)
+                  : [0,1,2,3,4].map(i => <Card key={i} faceDown large />)}
               </div>
-              <div className="flex flex-col items-center gap-0.5">
-                <div className="px-3 py-1 rounded-full bg-black/60 border border-amber-600/60 text-amber-300 font-bold text-xs">
+              <div className="flex flex-col items-center gap-1">
+                <div className="px-4 py-1.5 rounded-full bg-black/70 border border-amber-600/60 text-amber-300 font-bold text-sm tracking-wide">
                   Pot: ${pot}
                 </div>
                 {gameRunning && activePlayer && (() => {
-                  const toCall = Math.max(0, seats.find(s => s.name === activePlayer)?.lastAction ? 0 : pot);
                   const { BB } = calcBlinds(startingStack, blindLevel);
                   if (pot > 0 && BB > 0) return (
-                    <div className="text-slate-400 text-[9px]">{(pot / BB).toFixed(1)} BB in pot</div>
+                    <div className="text-slate-400 text-[10px]">{(pot / BB).toFixed(1)} BB in pot</div>
                   );
                   return null;
                 })()}
@@ -1095,10 +1459,35 @@ export default function PokerTable() {
               <Seat key={seat.name} {...seat} />
             ))}
           </div>
+
+          {/* Human action panel — always visible when manual player is enabled */}
+          {manualPlayer && (
+            <div
+              style={{ opacity: waitingForHuman ? 1 : 0.35, pointerEvents: waitingForHuman ? 'auto' : 'none', transition: 'opacity 0.3s' }}
+            >
+              <HumanActionPanel
+                toCall={humanActionState?.to_call ?? 0}
+                stack={humanActionState?.stack ?? (stacks[HUMAN_NAME] ?? startingStack)}
+                pot={humanActionState?.pot ?? pot}
+                street={humanActionState?.street ?? street}
+                onAction={(action, amount) => {
+                  if (humanResolverRef.current) {
+                    const displayAction = action === 'call' && amount === 0 ? 'check' : action;
+                    humanResolverRef.current({
+                      action,
+                      amount,
+                      reasoning: `You chose to ${displayAction}${amount > 0 ? ` $${amount}` : ''}`,
+                    });
+                    humanResolverRef.current = null;
+                  }
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Right — game log sidebar */}
-        <div className="w-80 flex-shrink-0 border-l border-slate-700 flex flex-col overflow-hidden">
+        <div className="w-96 flex-shrink-0 border-l border-slate-700 flex flex-col overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-700 flex-shrink-0">
             <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest">Round Actions</p>
           </div>
@@ -1118,7 +1507,7 @@ export default function PokerTable() {
               })}
             </div>
           )}
-          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1.5">
+          <div ref={gameLogRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-1.5">
             {gameLog.length === 0 && (
               <p className="text-slate-600 text-xs text-center mt-8">No actions yet — press Run Game to start.</p>
             )}
@@ -1137,7 +1526,12 @@ export default function PokerTable() {
                     <p className="text-slate-600 text-[9px] uppercase tracking-wide">{entry.street}</p>
                   )}
                 </div>
-                <p className="text-slate-400 text-[11px] leading-relaxed">{entry.reasoning}</p>
+                <p className="text-slate-400 text-[11px] leading-relaxed flex-1">{entry.reasoning}</p>
+                {entry.totalIn > 0 && (
+                  <span className="flex-shrink-0 self-start mt-0.5 text-[9px] text-slate-500 bg-slate-800/80 border border-slate-700/60 rounded px-1.5 py-0.5 whitespace-nowrap">
+                    in <span className="text-slate-300 font-semibold">${entry.totalIn}</span>
+                  </span>
+                )}
               </div>
             ))}
           </div>
