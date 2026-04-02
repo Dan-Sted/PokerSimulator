@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { healthCheck, playTurn, evaluateHands, initBrowser, shutdownBrowser, getSessionStatus, clearSession, startLogin, confirmLogin } from '../api';
+import { Home } from 'lucide-react';
+import { healthCheck, playTurn, evaluateHands, initBrowser, shutdownBrowser, getSessionStatus, clearSession, startLogin, confirmLogin, getGeminiKeyStatus, setGeminiKey } from '../api';
 
 const PLAYER_NAMES = ['Calculator', 'Shark', 'Gambler', 'Maniac', 'Rock'];
 const HUMAN_NAME   = 'You';
@@ -21,6 +22,14 @@ function shuffledDeck() {
   }
   return deck;
 }
+
+// Approximate [dx, dy] pixel offsets from table center for chip-fly animation
+const SEAT_CHIP_OFFSETS = {
+  3: [[0, 230], [360, -120], [-360, -120]],
+  4: [[0, 230], [440,   0], [0, -250], [-440,   0]],
+  5: [[0, 230], [440,  80], [360, -150], [-360, -150], [-440,  80]],
+  6: [[0, 230], [430,  90], [430, -140], [0, -250], [-430, -140], [-430,  90]],
+};
 
 const SEAT_POSITIONS = {
   3: [
@@ -82,9 +91,10 @@ const ACTION_ROW = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function Card({ rank, suit, faceDown, large }) {
+function Card({ rank, suit, faceDown, large, flipping }) {
   const SYM = { S: '♠', H: '♥', D: '♦', C: '♣' };
   const red  = suit === 'H' || suit === 'D';
+  const flipStyle = flipping ? { animation: 'cardReveal 0.45s ease-out' } : {};
   if (faceDown) {
     return large ? (
       <div className="w-12 h-16 rounded-lg bg-slate-700 border border-slate-500 flex items-center justify-center text-slate-400 text-sm">
@@ -98,14 +108,14 @@ function Card({ rank, suit, faceDown, large }) {
   }
   if (large) {
     return (
-      <div className={`w-12 h-16 rounded-lg bg-white border border-slate-300 flex flex-col items-center justify-center text-sm shadow-lg ${red ? 'text-red-600' : 'text-slate-800'}`}>
+      <div style={flipStyle} className={`w-12 h-16 rounded-lg bg-white border border-slate-300 flex flex-col items-center justify-center text-sm shadow-lg ${red ? 'text-red-600' : 'text-slate-800'}`}>
         <span className="font-bold leading-none text-base">{rank}</span>
         <span className="leading-none">{SYM[suit] || suit}</span>
       </div>
     );
   }
   return (
-    <div className={`w-8 h-11 rounded bg-white border border-slate-300 flex flex-col items-center justify-center text-[10px] shadow-md ${red ? 'text-red-600' : 'text-slate-800'}`}>
+    <div style={flipStyle} className={`w-8 h-11 rounded bg-white border border-slate-300 flex flex-col items-center justify-center text-[10px] shadow-md ${red ? 'text-red-600' : 'text-slate-800'}`}>
       <span className="font-bold leading-none">{rank}</span>
       <span className="leading-none">{SYM[suit] || suit}</span>
     </div>
@@ -218,7 +228,7 @@ function HumanActionPanel({ toCall, stack, pot, street, onAction }) {
   );
 }
 
-function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive, isThinking, lastAction, isFolded, isAllIn, isEliminated, isChipLeader, isHuman, wins, inPot, style }) {
+function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive, isThinking, isPaused, lastAction, isFolded, isAllIn, isEliminated, isChipLeader, isHuman, wins, inPot, style, dealKey, isShowdownReveal, seatIdx, numSeats }) {
   return (
     <div
       className={`absolute flex flex-col items-center rounded-xl px-2 py-1.5 min-w-[88px] transition-all border
@@ -230,11 +240,13 @@ function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive
               ? 'bg-blue-950/90 ring-2 ring-blue-400 ring-offset-1 ring-offset-green-900 border-blue-400/70'
               : isActive
                 ? 'bg-slate-800/90 ring-2 ring-amber-400 ring-offset-1 ring-offset-green-900 border-amber-400/70'
-                : isHuman
-                  ? 'bg-blue-950/70 ring-1 ring-blue-600/50 border-blue-600/50'
-                  : isChipLeader
-                    ? 'bg-slate-800/90 ring-1 ring-yellow-500/60 border-yellow-600/50'
-                    : 'bg-slate-800/90 border-slate-600/70'}`}
+                : isAllIn
+                  ? 'bg-purple-950/80 ring-2 ring-purple-400/80 ring-offset-1 ring-offset-green-900 border-purple-500/60 animate-pulse'
+                  : isHuman
+                    ? 'bg-blue-950/70 ring-1 ring-blue-600/50 border-blue-600/50'
+                    : isChipLeader
+                      ? 'bg-slate-800/90 ring-1 ring-yellow-500/60 border-yellow-600/50'
+                      : 'bg-slate-800/90 border-slate-600/70'}`}
       style={style}
     >
       <div className="flex items-center gap-1">
@@ -248,8 +260,11 @@ function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive
       )}
       {wins > 0 && !isEliminated && <span className="text-[9px] text-amber-500 font-bold leading-none">×{wins} wins</span>}
 
-      {isThinking && (
+      {isThinking && !isPaused && (
         <span className="text-slate-400 text-[10px] animate-pulse mt-0.5">thinking…</span>
+      )}
+      {isThinking && isPaused && (
+        <span className="text-purple-400 text-[10px] mt-0.5">⏸ paused</span>
       )}
       {isEliminated && (
         <span className="text-[10px] font-bold uppercase text-slate-600 mt-0.5">OUT</span>
@@ -271,8 +286,23 @@ function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive
       )}
 
       {!isEliminated && (
-        <div className="flex gap-0.5 mt-1">
-          {cards?.map((c, i) => <Card key={i} {...c} />)}
+        <div key={dealKey} className="flex gap-0.5 mt-1">
+          {cards?.map((c, i) => {
+            const [dx = 0, dy = 0] = (SEAT_CHIP_OFFSETS[numSeats] ?? [])[seatIdx] ?? [];
+            return (
+              <div
+                key={i}
+                style={{
+                  '--ox': `${-dx}px`,
+                  '--oy': `${-dy}px`,
+                  animation: 'dealCard 0.38s ease-out both',
+                  animationDelay: `${(seatIdx + i * numSeats) * 0.22}s`,
+                }}
+              >
+                <Card {...c} flipping={isShowdownReveal && !c.faceDown} />
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -291,6 +321,53 @@ function Seat({ name, stack, cards, isDealer, isSmallBlind, isBigBlind, isActive
           BB
         </span>
       )}
+    </div>
+  );
+}
+
+// Realistic poker chip SVG — used in fly animation and chip pile
+function PokerChipSVG({ color, size = 20 }) {
+  const r = size / 2;
+  const stripeAngles = [0, 45, 90, 135, 180, 225, 270, 315];
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block' }}>
+      {/* drop shadow */}
+      <circle cx={r} cy={r + 1} r={r - 1} fill="rgba(0,0,0,0.35)" />
+      {/* main body */}
+      <circle cx={r} cy={r} r={r - 0.5} fill={color} />
+      {/* outer dark ring */}
+      <circle cx={r} cy={r} r={r - 0.5} fill="none" stroke="rgba(0,0,0,0.55)" strokeWidth="1.5" />
+      {/* edge notch stripes */}
+      {stripeAngles.map(a => {
+        const rad = (a * Math.PI) / 180;
+        const x1 = r + (r - 1.5) * Math.cos(rad);
+        const y1 = r + (r - 1.5) * Math.sin(rad);
+        const x2 = r + (r - 4.5) * Math.cos(rad);
+        const y2 = r + (r - 4.5) * Math.sin(rad);
+        return <line key={a} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(255,255,255,0.55)" strokeWidth="2.2" strokeLinecap="round" />;
+      })}
+      {/* inner ring */}
+      <circle cx={r} cy={r} r={r - 5.5} fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="1.2" />
+      {/* center fill */}
+      <circle cx={r} cy={r} r={r - 7} fill="rgba(0,0,0,0.18)" />
+    </svg>
+  );
+}
+
+function ChipFly({ seatIdx, numSeats }) {
+  const offsets = SEAT_CHIP_OFFSETS[numSeats] ?? [];
+  const [dx = 0, dy = 0] = offsets[seatIdx] ?? [];
+  return (
+    <div
+      style={{
+        position: 'absolute', left: '50%', top: '50%',
+        width: 22, height: 22, marginLeft: -11, marginTop: -11,
+        '--dx': `${dx}px`, '--dy': `${dy}px`,
+        animation: 'chipFly 0.6s ease-in-out forwards',
+        pointerEvents: 'none', zIndex: 30,
+      }}
+    >
+      <PokerChipSVG color="#d97706" size={22} />
     </div>
   );
 }
@@ -380,11 +457,23 @@ function SettingsScreen({
   showHands, setShowHands,
   onRestart,
   onStart, error,
+  playerStats, onClearStats,
+  geminiKeyInput, setGeminiKeyInput,
+  geminiKeySet, geminiKeySaving, geminiKeyError,
+  onSaveGeminiKey, onClearGeminiKey,
 }) {
+  const [activeTab, setActiveTab] = useState('settings');
   const browserSufficient = browserReady && initializedCount >= playerCount;
   const needsMoreTabs     = browserReady && initializedCount < playerCount;
   const canStart = connected && (mode === 'api' || mode === 'ollama' || browserSufficient);
   const { SB: sb, BB: bb } = calcBlinds(startingStack);
+
+  // All known players in fixed display order
+  const allKnown = [HUMAN_NAME, ...PLAYER_NAMES];
+  const statsRows = allKnown
+    .filter(name => playerStats[name])
+    .map(name => ({ name, ...playerStats[name] }))
+    .sort((a, b) => (b.tournamentsWon ?? 0) - (a.tournamentsWon ?? 0) || (b.roundsWon ?? 0) - (a.roundsWon ?? 0));
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6">
@@ -411,8 +500,123 @@ function SettingsScreen({
           </div>
         </div>
 
-        {/* Two-column body */}
-        <div className="grid grid-cols-2 gap-0 divide-x divide-slate-700">
+        {/* Tab bar */}
+        <div className="flex border-b border-slate-700">
+          {['settings', 'stats'].map(tab => (
+            <button
+              key={tab}
+              className="tab-btn"
+              onClick={() => setActiveTab(tab)}
+              style={{
+                flex: 1, padding: '0.6rem 0', fontSize: '0.85rem',
+                fontWeight: activeTab === tab ? 600 : 400,
+                background: activeTab === tab ? '#1e293b' : 'transparent',
+                color: activeTab === tab ? '#f8fafc' : '#94a3b8',
+                border: 'none',
+                borderBottom: activeTab === tab ? '2px solid #d97706' : '2px solid transparent',
+                cursor: 'pointer', transition: 'all 0.15s', outline: 'none',
+              }}
+            >
+              {tab === 'settings' ? '⚙️ Settings' : '📊 Stats'}
+            </button>
+          ))}
+        </div>
+
+        {/* Stats tab */}
+        {activeTab === 'stats' && (
+          <div className="px-8 py-6">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-slate-300 font-semibold">Career Stats</p>
+              {statsRows.length > 0 && (
+                <button onClick={onClearStats} className="text-xs text-red-400 hover:text-red-300 transition-colors">
+                  Clear All Stats
+                </button>
+              )}
+            </div>
+            {statsRows.length === 0 ? (
+              <p className="text-slate-500 text-sm text-center py-10">No stats yet — play a game to start tracking.</p>
+            ) : (
+              <>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #334155' }}>
+                      {['Player', 'Matches', 'Rounds Won', 'Tournaments', 'Rounds/Match'].map(h => (
+                        <th key={h} style={{ padding: '0.4rem 0.75rem', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b', textAlign: h === 'Player' ? 'left' : 'right' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {statsRows.map((s, i) => {
+                      const rpm = s.matchesPlayed > 0 ? (s.roundsWon / s.matchesPlayed).toFixed(1) : '—';
+                      return (
+                        <tr key={s.name} style={{ borderBottom: '1px solid #1e293b', background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
+                          <td style={{ padding: '0.55rem 0.75rem', color: s.name === HUMAN_NAME ? '#93c5fd' : '#f1f5f9', fontWeight: 600, fontSize: '0.875rem' }}>{s.name}</td>
+                          <td style={{ padding: '0.55rem 0.75rem', color: '#94a3b8', textAlign: 'right', fontSize: '0.875rem' }}>{s.matchesPlayed ?? 0}</td>
+                          <td style={{ padding: '0.55rem 0.75rem', color: '#94a3b8', textAlign: 'right', fontSize: '0.875rem' }}>{s.roundsWon ?? 0}</td>
+                          <td style={{ padding: '0.55rem 0.75rem', textAlign: 'right' }}>
+                            <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '0.875rem' }}>{s.tournamentsWon ?? 0}</span>
+                          </td>
+                          <td style={{ padding: '0.55rem 0.75rem', color: '#64748b', textAlign: 'right', fontSize: '0.875rem' }}>{rpm}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                {/* Action Frequency Chart */}
+                {statsRows.some(s => s.actions) && (
+                  <div style={{ marginTop: '1.75rem' }}>
+                    <p style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.75rem' }}>Action Frequency</p>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.6rem' }}>
+                      {[['fold','#ef4444'],['call','#eab308'],['check','#3b82f6'],['raise','#22c55e']].map(([label, color]) => (
+                        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
+                          <span style={{ color: '#64748b', fontSize: '0.7rem' }}>{label.charAt(0).toUpperCase() + label.slice(1)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                      {statsRows.filter(s => s.actions).map(s => {
+                        const acts = s.actions ?? {};
+                        const total = (acts.fold ?? 0) + (acts.call ?? 0) + (acts.check ?? 0) + (acts.raise ?? 0);
+                        if (total === 0) return null;
+                        const pct = key => ((acts[key] ?? 0) / total * 100);
+                        const segments = [
+                          { key: 'fold',  color: '#ef4444' },
+                          { key: 'call',  color: '#eab308' },
+                          { key: 'check', color: '#3b82f6' },
+                          { key: 'raise', color: '#22c55e' },
+                        ].filter(seg => pct(seg.key) > 0);
+                        return (
+                          <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <span style={{ width: 76, flexShrink: 0, fontSize: '0.8rem', fontWeight: 600, color: s.name === HUMAN_NAME ? '#93c5fd' : '#cbd5e1', textAlign: 'right' }}>{s.name}</span>
+                            <div style={{ flex: 1, height: 18, borderRadius: 4, overflow: 'hidden', display: 'flex', background: '#1e293b' }}>
+                              {segments.map(seg => (
+                                <div
+                                  key={seg.key}
+                                  title={`${seg.key}: ${pct(seg.key).toFixed(1)}% (${acts[seg.key] ?? 0})`}
+                                  style={{ width: `${pct(seg.key)}%`, background: seg.color, transition: 'width 0.4s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                >
+                                  {pct(seg.key) >= 9 && (
+                                    <span style={{ fontSize: '0.6rem', color: 'rgba(0,0,0,0.75)', fontWeight: 700, userSelect: 'none' }}>{pct(seg.key).toFixed(0)}%</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            <span style={{ width: 36, flexShrink: 0, fontSize: '0.7rem', color: '#475569', textAlign: 'right' }}>{total}x</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Two-column body + action bar (settings tab only) */}
+        {activeTab === 'settings' && (<><div className="grid grid-cols-2 gap-0 divide-x divide-slate-700">
 
           {/* Left column */}
           <div className="px-8 py-6 space-y-5">
@@ -430,7 +634,7 @@ function SettingsScreen({
                 {mode === 'browser'
                   ? 'Uses Gemini via Chrome — bypasses API rate limits'
                   : mode === 'api'
-                    ? 'Uses Gemini API directly — requires GEMINI_API_KEY in .env'
+                    ? 'Uses Gemini API directly with your API key'
                     : 'Uses a local Ollama model — requires OLLAMA_URL + OLLAMA_MODEL in .env'}
               </p>
             </div>
@@ -586,6 +790,50 @@ function SettingsScreen({
               </div>
             )}
 
+            {/* Gemini API Key — api mode only */}
+            {mode === 'api' && (
+              <div>
+                <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">Gemini API Key</p>
+                {geminiKeySet ? (
+                  <div className="flex items-center gap-2">
+                    <span className="flex-1 text-emerald-400 text-xs font-medium">✓ API key configured</span>
+                    <button
+                      onClick={onClearGeminiKey}
+                      className="text-red-500 hover:text-red-400 text-xs px-2 py-1 rounded border border-red-900 hover:border-red-700 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="password"
+                      placeholder="AIza…"
+                      value={geminiKeyInput}
+                      onChange={e => setGeminiKeyInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && geminiKeyInput.trim() && onSaveGeminiKey()}
+                      className="flex-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-600 text-slate-200 text-xs placeholder-slate-600 focus:outline-none focus:border-violet-500"
+                    />
+                    <button
+                      onClick={onSaveGeminiKey}
+                      disabled={!geminiKeyInput.trim() || geminiKeySaving}
+                      className="px-3 py-1.5 rounded-lg bg-violet-700 hover:bg-violet-600 disabled:opacity-40 text-white text-xs font-medium transition-colors"
+                    >
+                      {geminiKeySaving ? '…' : 'Save'}
+                    </button>
+                  </div>
+                )}
+                {geminiKeyError && (
+                  <p className="text-red-400 text-xs mt-1">{geminiKeyError}</p>
+                )}
+                {!geminiKeySet && (
+                  <p className="text-slate-600 text-xs mt-1.5">
+                    Get a key at <span className="text-slate-500">aistudio.google.com</span>. Saved to your .env file.
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Action Speed */}
             <div>
               <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">Action Speed</p>
@@ -644,6 +892,7 @@ function SettingsScreen({
                 : 'Initialize the browser first'}
           </p>
         )}
+        </>)}{/* end settings tab */}
       </div>
     </div>
   );
@@ -700,6 +949,7 @@ export default function PokerTable() {
   const [initingBrowser, setInitingBrowser]   = useState(false);
   const [initializedCount, setInitializedCount] = useState(0);
   const [showHands, setShowHands]           = useState(() => localStorage.getItem('pk_showHands') === 'true');
+  const [autoContinue, setAutoContinue]     = useState(() => localStorage.getItem('pk_autoContinue') === 'true');
   const [actionSpeed, setActionSpeed]       = useState(() => parseInt(localStorage.getItem('pk_speed') ?? '1000'));
   const [playerCount, setPlayerCount]       = useState(() => parseInt(localStorage.getItem('pk_players') || '3'));
   const [startingStack, setStartingStack]   = useState(() => parseInt(localStorage.getItem('pk_stack') || '1000'));
@@ -726,11 +976,24 @@ export default function PokerTable() {
   const [street, setStreet]                 = useState('preflop');
   const [lastWinner, setLastWinner]         = useState(null);       // [{ name, amount }] or null
   const [currentContrib, setCurrentContrib] = useState({});         // chips each player has put in this round
+  const [playerStats, setPlayerStats]       = useState(() => { try { return JSON.parse(localStorage.getItem('pk_player_stats') || '{}'); } catch { return {}; } });
+  const [tournamentOver, setTournamentOver] = useState(false);      // true when only 1 player remains
+  const [dealKey, setDealKey]               = useState(0);          // increments each deal to re-trigger CSS animation
+  const [chipFlies, setChipFlies]           = useState([]);         // active chip-fly animations
+  const [showdownRevealCards, setShowdownRevealCards] = useState(new Set()); // players whose cards flip at showdown
   const [sessionStatus, setSessionStatus]   = useState(null);       // null=unchecked, true/false
   const [clearingSession, setClearingSession] = useState(false);
-  const stopRef       = useRef(false);
-  const initAbortRef  = useRef(null);   // AbortController for in-flight browser init
-  const gameLogRef    = useRef(null);   // scroll container for auto-scroll to bottom
+  const [geminiKeyInput, setGeminiKeyInput] = useState('');         // controlled input value
+  const [geminiKeySet, setGeminiKeySet]     = useState(null);       // null=unknown, true/false
+  const [geminiKeySaving, setGeminiKeySaving] = useState(false);
+  const [geminiKeyError, setGeminiKeyError] = useState(null);
+  const [gameSettingsOpen, setGameSettingsOpen] = useState(false);
+  const [paused, setPaused]                   = useState(false);
+  const stopRef            = useRef(false);
+  const pauseRef           = useRef(false);
+  const initAbortRef       = useRef(null);   // AbortController for in-flight browser init
+  const gameLogRef         = useRef(null);   // scroll container for auto-scroll to bottom
+  const gameSettingsRef    = useRef(null);   // for click-outside close
 
   // Persist settings to localStorage
   useEffect(() => { localStorage.setItem('pk_mode', mode); }, [mode]);
@@ -738,7 +1001,36 @@ export default function PokerTable() {
   useEffect(() => { localStorage.setItem('pk_players', playerCount); }, [playerCount]);
   useEffect(() => { localStorage.setItem('pk_stack', startingStack); }, [startingStack]);
   useEffect(() => { localStorage.setItem('pk_showHands', showHands); }, [showHands]);
+  useEffect(() => { localStorage.setItem('pk_autoContinue', autoContinue); }, [autoContinue]);
   useEffect(() => { localStorage.setItem('pk_speed', actionSpeed); }, [actionSpeed]);
+  useEffect(() => { localStorage.setItem('pk_player_stats', JSON.stringify(playerStats)); }, [playerStats]);
+
+  // Polls until unpaused (or stopped) — awaited before each AI turn
+  const waitIfPaused = () => new Promise(resolve => {
+    const check = () => {
+      if (!pauseRef.current || stopRef.current) resolve();
+      else setTimeout(check, 100);
+    };
+    check();
+  });
+
+  const handlePauseResume = () => {
+    const next = !pauseRef.current;
+    pauseRef.current = next;
+    setPaused(next);
+  };
+
+  // Close game settings dropdown on outside click
+  useEffect(() => {
+    if (!gameSettingsOpen) return;
+    const handler = (e) => {
+      if (gameSettingsRef.current && !gameSettingsRef.current.contains(e.target)) {
+        setGameSettingsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [gameSettingsOpen]);
 
   // Auto-scroll game log to bottom whenever a new entry is added
   useEffect(() => {
@@ -746,6 +1038,13 @@ export default function PokerTable() {
       gameLogRef.current.scrollTop = gameLogRef.current.scrollHeight;
     }
   }, [gameLog]);
+
+  // Auto-continue: start next round after 1.5s when enabled (never after tournament ends)
+  useEffect(() => {
+    if (!autoContinue || !roundComplete || gameRunning || tournamentOver) return;
+    const t = setTimeout(() => { handleNextRound(); }, 1500);
+    return () => clearTimeout(t);
+  }, [autoContinue, roundComplete, gameRunning, tournamentOver]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-connect to backend on mount
   useEffect(() => {
@@ -762,6 +1061,36 @@ export default function PokerTable() {
         .catch(() => setSessionStatus(null));
     }
   }, [connected, mode]);
+
+  // Check if a Gemini API key is already set on the backend when mode switches to api
+  useEffect(() => {
+    if (connected && mode === 'api') {
+      getGeminiKeyStatus()
+        .then(d => setGeminiKeySet(d.has_key))
+        .catch(() => setGeminiKeySet(false));
+    }
+  }, [connected, mode]);
+
+  const handleSaveGeminiKey = async () => {
+    setGeminiKeySaving(true);
+    setGeminiKeyError(null);
+    try {
+      const result = await setGeminiKey(geminiKeyInput.trim());
+      setGeminiKeySet(result.has_key);
+      setGeminiKeyInput('');
+    } catch (e) {
+      setGeminiKeyError(e?.response?.data?.detail ?? 'Failed to save key');
+    } finally {
+      setGeminiKeySaving(false);
+    }
+  };
+
+  const handleClearGeminiKey = async () => {
+    await setGeminiKey('').catch(() => {});
+    setGeminiKeySet(false);
+    setGeminiKeyInput('');
+    setGeminiKeyError(null);
+  };
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
@@ -836,6 +1165,7 @@ export default function PokerTable() {
     setBrowserReady(false); setInitializedCount(0);
     setGameLog([]); setPlayerActions({}); setPot(0); setRoundComplete(false);
     setCommunityCards([]); setHoleCards({}); setStacks({}); setLastWinner(null); setCurrentContrib({});
+    setChipFlies([]); setShowdownRevealCards(new Set());
     setActivePlayer(null); setGameRunning(false);
     setDealerIdx(0); setDealerName(null); setSbName(null); setBbName(null);
     setFoldedPlayers(new Set()); setAllInPlayers(new Set()); setRoundNumber(0);
@@ -857,6 +1187,7 @@ export default function PokerTable() {
     setBrowserReady(false); setInitializedCount(0);
     setGameLog([]); setPlayerActions({}); setPot(0); setRoundComplete(false);
     setCommunityCards([]); setHoleCards({}); setStacks({}); setLastWinner(null); setCurrentContrib({});
+    setChipFlies([]); setShowdownRevealCards(new Set());
     setActivePlayer(null); setGameRunning(false);
     setDealerIdx(0); setDealerName(null); setSbName(null); setBbName(null);
     setFoldedPlayers(new Set()); setAllInPlayers(new Set()); setRoundNumber(0);
@@ -892,6 +1223,8 @@ export default function PokerTable() {
     setFoldedPlayers(new Set());
     setAllInPlayers(new Set());
     setCurrentContrib({});
+    setChipFlies([]);
+    setShowdownRevealCards(new Set());
     setError(null);
     setActivePlayer(null);
     setLastWinner(null);
@@ -905,8 +1238,10 @@ export default function PokerTable() {
     if (players.length <= 1) {
       const winner = players[0] ?? null;
       if (winner) {
-        setLastWinner([{ name: winner, amount: 0 }]);
+        setLastWinner([{ name: winner, amount: null }]);
+        setTournamentOver(true);
         setGameLog([{ player: winner, street: 'result', action: 'wins', amount: 0, reasoning: 'Last player standing — tournament winner!' }]);
+        setPlayerStats(prev => ({ ...prev, [winner]: { ...prev[winner], matchesPlayed: prev[winner]?.matchesPlayed ?? 0, roundsWon: prev[winner]?.roundsWon ?? 0, tournamentsWon: (prev[winner]?.tournamentsWon ?? 0) + 1 } }));
       }
       setActivePlayer(null);
       setGameRunning(false);
@@ -932,6 +1267,7 @@ export default function PokerTable() {
     const communityDeck = deck.slice(n * 2, n * 2 + 5);
 
     setHoleCards(newHoleCards);
+    setDealKey(k => k + 1);
     setCommunityCards([]);
     setStreet('preflop');
 
@@ -973,6 +1309,7 @@ export default function PokerTable() {
         setPot(0);
         setLastWinner([{ name: winner, amount: winAmount }]);
         setPlayerWins(prev => ({ ...prev, [winner]: (prev[winner] ?? 0) + 1 }));
+        setPlayerStats(prev => ({ ...prev, [winner]: { ...prev[winner], matchesPlayed: prev[winner]?.matchesPlayed ?? 0, roundsWon: (prev[winner]?.roundsWon ?? 0) + 1, tournamentsWon: prev[winner]?.tournamentsWon ?? 0 } }));
         setGameLog(prev => [...prev, {
           player: winner, street: 'result', action: 'wins',
           amount: winAmount, reasoning: `${winner === HUMAN_NAME ? 'Win' : 'Wins'} the pot of $${winAmount}.`,
@@ -982,6 +1319,9 @@ export default function PokerTable() {
       setGameRunning(false);
       setRoundComplete(!aborted);
     };
+
+    // Capture the visual seat order before runStreet shadows the name with its own parameter
+    const seatPlayers = activePlayers;
 
     // One betting street — uses a proper multi-round loop so players can respond to raises.
     // initialContributed: credit blinds so SB/BB aren't double-charged in preflop.
@@ -1040,6 +1380,8 @@ export default function PokerTable() {
         } else {
           try {
             result = await playTurn(player, state, mode);
+            // Hold the result until resumed — AI already answered, just delay applying it
+            await waitIfPaused();
           } catch (e) {
             const msg = e.response?.data?.detail || e.message || 'Request failed';
             setError(msg);
@@ -1084,12 +1426,29 @@ export default function PokerTable() {
         const logEntry = { ...result, action: displayAction, amount: actualAmount, totalIn: runningTotal[player] };
         setPlayerActions(prev => ({ ...prev, [player]: logEntry }));
         setGameLog(prev => [...prev, { player, street: streetName, ...logEntry }]);
+        // Track action frequency (skip blinds — only real decisions count)
+        if (displayAction !== 'blind') {
+          setPlayerStats(prev => {
+            const ps = prev[player] ?? { matchesPlayed: 0, roundsWon: 0, tournamentsWon: 0 };
+            const acts = ps.actions ?? { fold: 0, call: 0, check: 0, raise: 0 };
+            return { ...prev, [player]: { ...ps, actions: { ...acts, [displayAction]: (acts[displayAction] ?? 0) + 1 } } };
+          });
+        }
         setStacks({ ...s });
         setPot(p);
         setCurrentContrib(prev => ({ ...prev, [player]: (prev[player] || 0) + actualAmount }));
 
+        // Chip fly animation — only when chips actually move
+        if (actualAmount > 0 && !stopRef.current) {
+          const seatIdx = seatPlayers.indexOf(player);
+          const flyId = performance.now() + Math.random();
+          setChipFlies(prev => [...prev, { id: flyId, seatIdx, numSeats: seatPlayers.length }]);
+          setTimeout(() => setChipFlies(prev => prev.filter(f => f.id !== flyId)), 650);
+        }
+
         if (actionSpeed > 0 && !stopRef.current) {
-          await new Promise(r => setTimeout(r, actionSpeed));
+          await waitIfPaused();
+          if (!stopRef.current) await new Promise(r => setTimeout(r, actionSpeed));
         }
       }
 
@@ -1112,6 +1471,15 @@ export default function PokerTable() {
     preflopInitContrib[players[bbI]] = bbAmt;
 
     setStreet('preflop');
+
+    // Wait for deal animation to finish before the first player acts.
+    // Total deal time = (last card delay) + animation duration.
+    // Last card: seatIdx = n-1, cardIdx = 1 → delay = (n-1 + 1*n) * 0.22 = (2n-1)*0.22
+    if (!stopRef.current) {
+      const dealMs = Math.ceil(((2 * n - 1) * 0.22 + 0.38) * 1000);
+      await new Promise(r => setTimeout(r, dealMs));
+    }
+
     const preflopOrder = [...players.slice(utgI), ...players.slice(0, utgI)];
     let result = await runStreet(preflopOrder, s0, pot0, [], 'preflop', BB, preflopInitContrib);
     accumulate(result);
@@ -1129,7 +1497,8 @@ export default function PokerTable() {
       if (canBet.length <= 1) {
         // All opponents are all-in — no betting possible, just reveal cards
         if (actionSpeed > 0 && !stopRef.current) {
-          await new Promise(r => setTimeout(r, Math.max(actionSpeed / 2, 400)));
+          await waitIfPaused();
+          if (!stopRef.current) await new Promise(r => setTimeout(r, Math.max(actionSpeed / 2, 400)));
         }
         return result; // unchanged stacks / pot
       }
@@ -1158,6 +1527,13 @@ export default function PokerTable() {
 
     // ── SHOWDOWN — evaluate hands, compute side pots, award chips ────────────
     const survivors = result.stillActive;
+
+    // Flip surviving players' cards face-up before evaluation
+    if (survivors.length > 1) {
+      setShowdownRevealCards(new Set(survivors));
+      await new Promise(r => setTimeout(r, 700));
+    }
+
     try {
       const payload = survivors.map(name => ({ name, hole_cards: newHoleCards[name] }));
       const { winners, hand_descriptions } = await evaluateHands(payload, river);
@@ -1196,9 +1572,21 @@ export default function PokerTable() {
             amount, reasoning: `${potWinner === HUMAN_NAME ? 'Win' : 'Wins'} pot of $${amount}.`,
           }]);
         }
+        // Record round win for the winner of the main (last/largest) pot
+        const mainWinner = allWins[allWins.length - 1]?.name;
+        if (mainWinner) {
+          setPlayerStats(prev => ({ ...prev, [mainWinner]: { ...prev[mainWinner], matchesPlayed: prev[mainWinner]?.matchesPlayed ?? 0, roundsWon: (prev[mainWinner]?.roundsWon ?? 0) + 1, tournamentsWon: prev[mainWinner]?.tournamentsWon ?? 0 } }));
+        }
         setStacks(finalStacks);
         setPot(0);
-        setLastWinner(allWins);
+        // Merge multiple pots won by the same player into one banner entry
+        const mergedWins = Object.values(
+          allWins.reduce((acc, w) => {
+            acc[w.name] = { name: w.name, amount: (acc[w.name]?.amount ?? 0) + w.amount };
+            return acc;
+          }, {})
+        );
+        setLastWinner(mergedWins);
         setActivePlayer(null);
         setGameRunning(false);
         setRoundComplete(true);
@@ -1219,6 +1607,17 @@ export default function PokerTable() {
       : PLAYER_NAMES.slice(0, playerCount);
     const init    = {};
     players.forEach(p => { init[p] = startingStack; });
+    // Record a match played for everyone in this lineup
+    setPlayerStats(prev => {
+      const next = { ...prev };
+      players.forEach(name => {
+        next[name] = { ...next[name], matchesPlayed: (next[name]?.matchesPlayed ?? 0) + 1, roundsWon: next[name]?.roundsWon ?? 0, tournamentsWon: next[name]?.tournamentsWon ?? 0 };
+      });
+      return next;
+    });
+    setTournamentOver(false);
+    pauseRef.current = false;
+    setPaused(false);
     setDealerIdx(0);
     setRoundNumber(1);
     setBlindLevel(1);
@@ -1226,6 +1625,9 @@ export default function PokerTable() {
   };
 
   const handleNextRound = () => {
+    pauseRef.current = false;
+    setPaused(false);
+    stopRef.current = false;
     const players    = manualPlayer
       ? [HUMAN_NAME, ...PLAYER_NAMES.slice(0, playerCount)]
       : PLAYER_NAMES.slice(0, playerCount);
@@ -1274,6 +1676,12 @@ export default function PokerTable() {
           setPhase('game');
         }}
         error={error}
+        playerStats={playerStats}
+        onClearStats={() => { setPlayerStats({}); localStorage.removeItem('pk_player_stats'); }}
+        geminiKeyInput={geminiKeyInput} setGeminiKeyInput={setGeminiKeyInput}
+        geminiKeySet={geminiKeySet} geminiKeySaving={geminiKeySaving}
+        geminiKeyError={geminiKeyError}
+        onSaveGeminiKey={handleSaveGeminiKey} onClearGeminiKey={handleClearGeminiKey}
       />
     );
   }
@@ -1300,22 +1708,29 @@ export default function PokerTable() {
       name,
       stack,
       isHuman,
-      cards:        (showHands || isHuman)
-                      ? (holeCards[name] ?? [{ faceDown: true }, { faceDown: true }])
-                      : [{ faceDown: true }, { faceDown: true }],
+      cards:        holeCards[name]
+                      ? (showHands || isHuman || showdownRevealCards.has(name))
+                        ? holeCards[name]
+                        : [{ faceDown: true }, { faceDown: true }]
+                      : [],
       isDealer:     name === dealerName,
       isSmallBlind: name === sbName,
       isBigBlind:   name === bbName,
       isActive:     name === activePlayer,
       isThinking:   name === activePlayer && gameRunning && !isHuman,
+      isPaused:     name === activePlayer && gameRunning && !isHuman && paused,
       lastAction:   playerActions[name] ?? null,
       isFolded:     foldedPlayers.has(name),
       isAllIn:      allInPlayers.has(name),
       isEliminated: roundNumber > 0 && stack === 0 && !allInPlayers.has(name),
       isChipLeader: name === chipLeader && roundNumber > 0 && !gameRunning,
       wins:         playerWins[name] ?? 0,
-      inPot:        currentContrib[name] ?? 0,
-      style:        seatPos[i],
+      inPot:            currentContrib[name] ?? 0,
+      isShowdownReveal: showdownRevealCards.has(name),
+      dealKey,
+      seatIdx:          i,
+      numSeats:         activePlayers.length,
+      style:            seatPos[i],
     };
   });
 
@@ -1323,9 +1738,41 @@ export default function PokerTable() {
 
   return (
     <div className="h-screen bg-slate-900 text-white flex flex-col overflow-hidden">
+      <style>{`
+        @keyframes dealCard {
+          from { opacity: 0; transform: translate(var(--ox), var(--oy)) scale(0.55); }
+          to   { opacity: 1; transform: translate(0, 0) scale(1); }
+        }
+        @keyframes dealCommunityCard {
+          from { opacity: 0; transform: translateY(-18px) scale(0.75) rotate(-4deg); }
+          to   { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+        }
+        @keyframes chipFly {
+          0%   { opacity: 1; transform: translate(var(--dx), var(--dy)) scale(1.1); }
+          80%  { opacity: 1; transform: translate(0, 0) scale(1.15); }
+          100% { opacity: 0; transform: translate(0, 0) scale(0.3); }
+        }
+        @keyframes cardReveal {
+          0%   { transform: scaleX(0.05); }
+          50%  { transform: scaleX(0.05); }
+          100% { transform: scaleX(1); }
+        }
+      `}</style>
 
       {/* Top bar */}
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-700 bg-slate-800/80 flex-shrink-0">
+
+        {/* Back button — top-left like a browser back button */}
+        <button
+          onClick={handleEndGame}
+          disabled={shuttingDown}
+          className="btn-dark flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-sm font-medium transition-colors mr-1"
+          title="End game and return to start"
+        >
+          {shuttingDown ? '…' : <><Home size={16} /> Home</>}
+        </button>
+
+        {/* Info badges */}
         <span className="text-slate-400 text-xs px-2 py-1 rounded bg-slate-800 border border-slate-700">
           {mode === 'browser' ? '🌐 Browser' : mode === 'api' ? '⚡ API' : '🦙 Ollama'}
         </span>
@@ -1347,53 +1794,144 @@ export default function PokerTable() {
         {error && <span className="text-red-400 text-xs ml-2">⚠ {error}</span>}
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Speed control — usable mid-game */}
-          <div className="flex items-center gap-1 border border-slate-700 rounded-lg overflow-hidden">
-            {[{v:0,label:'⚡'},{v:1000,label:'▶'},{v:2500,label:'🐢'}].map(({v,label}) => (
-              <button
-                key={v}
-                onClick={() => setActionSpeed(v)}
-                style={{ backgroundColor: actionSpeed === v ? '#d97706' : '#1e293b' }}
-                className="px-2 py-1 text-xs border-none outline-none text-white cursor-pointer"
+
+          {/* Settings gear dropdown */}
+          <div className="relative" ref={gameSettingsRef}>
+            <button
+              onClick={() => setGameSettingsOpen(o => !o)}
+              className="btn-dark px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm font-medium transition-colors"
+              title="Options"
+            >
+              ⚙ Options
+            </button>
+            {gameSettingsOpen && (
+              <div
+                className="absolute right-0 top-full mt-1 z-50 rounded-xl border border-slate-600 bg-slate-800 shadow-2xl"
+                style={{ minWidth: 220 }}
               >
-                {label}
-              </button>
-            ))}
+                {/* Speed */}
+                <div className="px-4 pt-3 pb-2">
+                  <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">Speed</p>
+                  <div className="flex gap-1">
+                    {[{v:0,label:'⚡ Fast'},{v:1000,label:'▶ Normal'},{v:2500,label:'🐢 Slow'}].map(({v,label}) => (
+                      <button
+                        key={v}
+                        onClick={() => setActionSpeed(v)}
+                        className="flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                        style={{
+                          background: actionSpeed === v ? '#d97706' : '#1e293b',
+                          color: actionSpeed === v ? '#fff' : '#94a3b8',
+                          border: `1px solid ${actionSpeed === v ? '#b45309' : '#334155'}`,
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-700 mx-3" />
+
+                {/* Auto-Run */}
+                <div className="px-4 py-2">
+                  <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">Auto-Run</p>
+                  <button
+                    onClick={() => setAutoContinue(v => !v)}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors"
+                    style={{
+                      background: autoContinue ? 'rgba(16,185,129,0.15)' : '#1e293b',
+                      border: `1px solid ${autoContinue ? 'rgba(16,185,129,0.4)' : '#334155'}`,
+                    }}
+                  >
+                    <span className="text-sm" style={{ color: autoContinue ? '#6ee7b7' : '#94a3b8' }}>
+                      Start next round automatically
+                    </span>
+                    <span
+                      className="ml-3 flex-shrink-0"
+                      style={{
+                        width: 32, height: 18, borderRadius: 9, position: 'relative', display: 'inline-block',
+                        background: autoContinue ? '#10b981' : '#334155', transition: 'background 0.2s',
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute', top: 3, left: autoContinue ? 17 : 3,
+                        width: 12, height: 12, borderRadius: '50%', background: '#fff', transition: 'left 0.2s',
+                      }} />
+                    </span>
+                  </button>
+                </div>
+
+                <div className="border-t border-slate-700 mx-3" />
+
+                {/* Show / Hide Hands */}
+                <div className="px-4 py-2 pb-3">
+                  <p className="text-slate-400 text-xs uppercase tracking-wider mb-2">Hole Cards</p>
+                  <button
+                    onClick={() => setShowHands(h => !h)}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors"
+                    style={{
+                      background: showHands ? 'rgba(99,102,241,0.15)' : '#1e293b',
+                      border: `1px solid ${showHands ? 'rgba(99,102,241,0.4)' : '#334155'}`,
+                    }}
+                  >
+                    <span className="text-sm" style={{ color: showHands ? '#a5b4fc' : '#94a3b8' }}>
+                      {showHands ? '👁 Showing all hands' : '🙈 Hands hidden'}
+                    </span>
+                    <span
+                      className="ml-3 flex-shrink-0"
+                      style={{
+                        width: 32, height: 18, borderRadius: 9, position: 'relative', display: 'inline-block',
+                        background: showHands ? '#6366f1' : '#334155', transition: 'background 0.2s',
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute', top: 3, left: showHands ? 17 : 3,
+                        width: 12, height: 12, borderRadius: '50%', background: '#fff', transition: 'left 0.2s',
+                      }} />
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          <button
-            onClick={() => setShowHands(h => !h)}
-            className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm"
-          >
-            {showHands ? '🙈 Hide Hands' : '👁 Show Hands'}
-          </button>
-
-          <button
-            onClick={handleEndGame}
-            disabled={shuttingDown}
-            className="px-3 py-1.5 rounded-lg bg-red-900 hover:bg-red-800 disabled:opacity-40 text-sm font-medium"
-          >
-            {shuttingDown ? 'Ending…' : '⏹ End Game'}
-          </button>
-
-          {gameRunning ? (
+          {/* Pause / Resume — only visible while a round is in progress */}
+          {gameRunning && (
             <button
-              onClick={() => { stopRef.current = true; resolveHumanWithFold(); }}
-              className="px-4 py-1.5 rounded-lg bg-red-700 hover:bg-red-600 font-semibold text-sm"
+              onClick={handlePauseResume}
+              className="px-4 py-1.5 rounded-lg font-semibold text-sm transition-colors"
+              style={{
+                background: paused ? '#065f46' : '#1d4ed8',
+                border: `1px solid ${paused ? '#10b981' : '#3b82f6'}`,
+                color: '#fff',
+              }}
             >
-              ⏹ Stop
+              {paused ? '▶ Resume' : '⏸ Pause'}
             </button>
-          ) : roundComplete ? (
-            <button
-              onClick={handleNextRound}
-              className="px-4 py-1.5 rounded-lg bg-green-700 hover:bg-green-600 font-semibold text-sm"
-            >
-              ▶ Next Round
-            </button>
-          ) : (
+          )}
+
+          {/* Round action buttons — Run Game hides while running */}
+          {!gameRunning && roundComplete && (
+            tournamentOver ? (
+              <button
+                onClick={handleEndGame}
+                className="px-4 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-600 font-semibold text-sm"
+              >
+                🏆 New Game
+              </button>
+            ) : (
+              <button
+                onClick={handleNextRound}
+                className="px-4 py-1.5 rounded-lg bg-green-700 hover:bg-green-600 font-semibold text-sm"
+              >
+                ▶ Next Round
+              </button>
+            )
+          )}
+          {!gameRunning && !roundComplete && (
             <button
               onClick={handleRunGame}
-              className="px-4 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 font-semibold text-sm"
+              className="btn-dark px-4 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 font-semibold text-sm"
             >
               ▶ Run Game
             </button>
@@ -1414,15 +1952,36 @@ export default function PokerTable() {
           >
             {/* Winner banner — absolute overlay so it never shifts layout */}
             {lastWinner && !gameRunning && (
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-6 py-2.5 rounded-xl bg-amber-950/95 border border-amber-600/60 text-center shadow-xl whitespace-nowrap">
-                {lastWinner.map(({ name, amount }, i) => (
-                  <p key={i} className="text-amber-300 font-bold text-base">
-                    🏆 {name} {name === HUMAN_NAME ? 'win' : 'wins'} ${amount}!
-                  </p>
-                ))}
-                <p className="text-amber-600/80 text-xs mt-0.5">
-                  Press <span className="text-green-400 font-semibold">Next Round</span> to keep playing
-                </p>
+              <div
+                className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-6 py-2.5 rounded-xl text-center shadow-xl whitespace-nowrap"
+                style={{
+                  background: tournamentOver ? 'rgba(88,28,135,0.97)' : 'rgba(69,26,3,0.97)',
+                  border: tournamentOver ? '1px solid rgba(168,85,247,0.7)' : '1px solid rgba(217,119,6,0.6)',
+                }}
+              >
+                {tournamentOver ? (
+                  <>
+                    <p style={{ color: '#e9d5ff', fontWeight: 800, fontSize: '1rem' }}>
+                      🏆 Tournament Winner: {lastWinner[0]?.name}!
+                    </p>
+                    <p style={{ color: '#a78bfa', fontSize: '0.75rem', marginTop: '0.15rem' }}>
+                      Click <span style={{ color: '#86efac', fontWeight: 600 }}>Run Game</span> to start a new tournament
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    {lastWinner.map(({ name, amount }, i) => (
+                      <p key={i} className="text-amber-300 font-bold text-base">
+                        🏆 {name} {name === HUMAN_NAME ? 'win' : 'wins'} ${amount}!
+                      </p>
+                    ))}
+                    <p className="text-amber-600/80 text-xs mt-0.5">
+                      {autoContinue
+                        ? 'Next round starting automatically…'
+                        : <>Press <span className="text-green-400 font-semibold">Next Round</span> to keep playing</>}
+                    </p>
+                  </>
+                )}
               </div>
             )}
             {/* Felt oval */}
@@ -1437,9 +1996,11 @@ export default function PokerTable() {
             {/* Community cards + pot */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-3">
               <div className="flex gap-2">
-                {communityCards.length > 0
-                  ? communityCards.map((c, i) => <Card key={i} {...c} large />)
-                  : [0,1,2,3,4].map(i => <Card key={i} faceDown large />)}
+                {communityCards.map((c, i) => (
+                  <div key={i} style={{ animation: 'dealCommunityCard 0.35s ease-out both', animationDelay: `${i < 3 ? i * 0.18 : 0}s` }}>
+                    <Card {...c} large />
+                  </div>
+                ))}
               </div>
               <div className="flex flex-col items-center gap-1">
                 <div className="px-4 py-1.5 rounded-full bg-black/70 border border-amber-600/60 text-amber-300 font-bold text-sm tracking-wide">
@@ -1458,12 +2019,17 @@ export default function PokerTable() {
             {seats.map(seat => (
               <Seat key={seat.name} {...seat} />
             ))}
+
+            {/* Chip fly overlay */}
+            {chipFlies.map(fly => (
+              <ChipFly key={fly.id} seatIdx={fly.seatIdx} numSeats={fly.numSeats} />
+            ))}
           </div>
 
           {/* Human action panel — always visible when manual player is enabled */}
           {manualPlayer && (
             <div
-              style={{ opacity: waitingForHuman ? 1 : 0.35, pointerEvents: waitingForHuman ? 'auto' : 'none', transition: 'opacity 0.3s' }}
+              style={{ opacity: waitingForHuman && !paused ? 1 : 0.35, pointerEvents: waitingForHuman && !paused ? 'auto' : 'none', transition: 'opacity 0.3s' }}
             >
               <HumanActionPanel
                 toCall={humanActionState?.to_call ?? 0}
