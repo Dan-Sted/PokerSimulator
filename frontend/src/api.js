@@ -52,3 +52,21 @@ export async function playTurn(playerName, state, mode = 'browser') {
   });
   return data;
 }
+
+export async function evaluateHands(players, communityCards) {
+  const { data } = await axios.post(`${API_BASE}/evaluate-hands`, {
+    players,
+    community_cards: communityCards,
+  });
+  return data;
+}
+
+export async function getGeminiKeyStatus() {
+  const { data } = await axios.get(`${API_BASE}/settings/gemini-key`);
+  return data; // { has_key: bool }
+}
+
+export async function setGeminiKey(key) {
+  const { data } = await axios.post(`${API_BASE}/settings/gemini-key`, { key });
+  return data; // { ok: bool, has_key: bool }
+}

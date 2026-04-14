@@ -3,12 +3,14 @@ import json
 import re
 import asyncio
 import chromadb
+from itertools import combinations
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Literal
 from google import genai
+from pypokerengine.engine.card import Card
 
 load_dotenv()
 
@@ -123,6 +125,51 @@ def home():
     return {"message": "Poker Backend Running"}
 
 
+class GeminiKeyRequest(BaseModel):
+    key: str
+
+@app.get("/settings/gemini-key")
+def get_gemini_key_status():
+    return {"has_key": _client is not None}
+
+@app.post("/settings/gemini-key")
+def set_gemini_key(body: GeminiKeyRequest):
+    global _client
+    key = body.key.strip()
+    if not key:
+        _client = None
+        # Remove the key from .env
+        _update_env_key("")
+        return {"ok": True, "has_key": False}
+    try:
+        _client = genai.Client(api_key=key)
+        _update_env_key(key)
+        return {"ok": True, "has_key": True}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid key: {e}")
+
+def _update_env_key(key: str):
+    """Write or update GEMINI_API_KEY in the .env file."""
+    env_path = os.path.join(_THIS_DIR, ".env")
+    lines = []
+    found = False
+    if os.path.exists(env_path):
+        with open(env_path) as f:
+            lines = f.readlines()
+    new_lines = []
+    for line in lines:
+        if line.startswith("GEMINI_API_KEY="):
+            if key:
+                new_lines.append(f"GEMINI_API_KEY={key}\n")
+            found = True
+        else:
+            new_lines.append(line)
+    if not found and key:
+        new_lines.append(f"GEMINI_API_KEY={key}\n")
+    with open(env_path, "w") as f:
+        f.writelines(new_lines)
+
+
 @app.get("/browser/status")
 def browser_status():
     return {"ready": _browser_ready}
@@ -161,16 +208,14 @@ def browser_clear_session():
 @app.post("/browser/shutdown")
 async def browser_shutdown():
     global _browser_ready, _initialized_players
-    if not _browser_ready:
-        return {"status": "not_initialized"}
     try:
         from gemini_browser import shutdown_browser
         await asyncio.to_thread(shutdown_browser)
-        _browser_ready = False
-        _initialized_players = set()
-        return {"status": "shutdown"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        pass  # always reset state even if shutdown errors
+    _browser_ready = False
+    _initialized_players = set()
+    return {"status": "shutdown"}
 
 
 @app.post("/browser/init")
@@ -252,3 +297,101 @@ async def play_turn(body: PlayTurnRequest):
 
     response = await asyncio.to_thread(_call_api)
     return _parse_response(response.text, valid_actions)
+
+
+# ── Hand evaluation endpoint ───────────────────────────────────────────────────
+
+class CardModel(BaseModel):
+    rank: str   # '2'-'9', 'T', 'J', 'Q', 'K', 'A'
+    suit: str   # 'S', 'H', 'D', 'C'
+
+class PlayerHandModel(BaseModel):
+    name: str
+    hole_cards: list[CardModel]
+
+class EvaluateHandsRequest(BaseModel):
+    players: list[PlayerHandModel]
+    community_cards: list[CardModel]
+
+def _to_card(c: CardModel) -> Card:
+    # pypokerengine Card.from_str expects e.g. 'CA' (Club Ace), 'H2' (Heart 2)
+    return Card.from_str(c.suit + c.rank)
+
+# ── Deterministic hand evaluator ─────────────────────────────────────────────
+# pypokerengine's eval_hand() is a Monte Carlo estimate and cannot reliably
+# break ties (e.g. Two Pair 9s-6s vs Two Pair 7s-6s).  We use a pure Python
+# evaluator that produces a fully-ordered comparable tuple instead.
+
+_RANK_VAL = {'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,
+             'T':10,'J':11,'Q':12,'K':13,'A':14}
+
+_HAND_NAMES = [
+    "High Card", "One Pair", "Two Pair", "Three of a Kind",
+    "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush",
+]
+
+def _rank_five(cards):
+    """Return a comparable tuple for exactly 5 cards (objects with .rank/.suit)."""
+    vals  = sorted([_RANK_VAL[c.rank] for c in cards], reverse=True)
+    suits = [c.suit for c in cards]
+
+    is_flush    = len(set(suits)) == 1
+    is_straight = len(set(vals)) == 5 and (vals[0] - vals[4]) == 4
+    # Wheel: A-2-3-4-5
+    if set(vals) == {14, 2, 3, 4, 5}:
+        is_straight = True
+        vals = [5, 4, 3, 2, 1]
+
+    counts = {}
+    for v in vals:
+        counts[v] = counts.get(v, 0) + 1
+    # Sort groups: highest count first, then highest card value first
+    groups     = sorted(counts.items(), key=lambda x: (x[1], x[0]), reverse=True)
+    gvals      = [v for v, _ in groups]
+    gcounts    = [c for _, c in groups]
+
+    if is_straight and is_flush:
+        return (8, vals[0])
+    if gcounts[0] == 4:
+        return (7, gvals[0], gvals[1])
+    if gcounts[:2] == [3, 2]:
+        return (6, gvals[0], gvals[1])
+    if is_flush:
+        return (5, *vals)
+    if is_straight:
+        return (4, vals[0])
+    if gcounts[0] == 3:
+        return (3, gvals[0], gvals[1], gvals[2])
+    if gcounts[:2] == [2, 2]:
+        return (2, gvals[0], gvals[1], gvals[2])
+    if gcounts[0] == 2:
+        return (1, gvals[0], gvals[1], gvals[2], gvals[3])
+    return (0, *vals)
+
+def _best_rank(hole: list, community: list):
+    """Best 5-card rank from up to 7 cards."""
+    all_cards = hole + community
+    return max(_rank_five(list(combo)) for combo in combinations(all_cards, 5))
+
+def _hand_name(rank_tuple: tuple) -> str:
+    return _HAND_NAMES[rank_tuple[0]]
+
+@app.post("/evaluate-hands")
+def evaluate_hands(body: EvaluateHandsRequest):
+    community = [_to_card(c) for c in body.community_cards]
+
+    ranks: dict[str, tuple] = {}
+    hand_descriptions: dict[str, str] = {}
+    for player in body.players:
+        hole = [_to_card(c) for c in player.hole_cards]
+        r = _best_rank(hole, community)
+        ranks[player.name]            = r
+        hand_descriptions[player.name] = _hand_name(r)
+
+    best    = max(ranks.values())
+    winners = [name for name, r in ranks.items() if r == best]
+
+    return {
+        "winners": winners,
+        "hand_descriptions": hand_descriptions,
+    }
