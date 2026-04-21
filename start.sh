@@ -23,7 +23,17 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# ── 0. Create default .env if missing ────────────────────────────────────────
+# ── 0a. Free ports used by any previous run ──────────────────────────────────
+for port in 8000 5173; do
+  pid=$(lsof -ti:"$port" 2>/dev/null)
+  if [ -n "$pid" ]; then
+    warn "Port $port in use (PID $pid) — killing..."
+    kill "$pid" 2>/dev/null || true
+    sleep 0.5
+  fi
+done
+
+# ── 0b. Create default .env if missing ───────────────────────────────────────
 if [ ! -f "$BACKEND/.env" ]; then
   warn ".env not found — creating default .env (edit to add API keys)..."
   cat > "$BACKEND/.env" <<'EOF'
