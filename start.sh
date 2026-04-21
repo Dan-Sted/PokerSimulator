@@ -25,7 +25,7 @@ trap cleanup EXIT INT TERM
 
 # ── 0a. Free ports used by any previous run ──────────────────────────────────
 for port in 8000 5173; do
-  pid=$(lsof -ti:"$port" 2>/dev/null)
+  pid=$(lsof -ti:"$port" 2>/dev/null) || true
   if [ -n "$pid" ]; then
     warn "Port $port in use (PID $pid) — killing..."
     kill "$pid" 2>/dev/null || true
