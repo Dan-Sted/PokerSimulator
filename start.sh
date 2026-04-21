@@ -23,6 +23,28 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+# ── 0a. Free ports used by any previous run ──────────────────────────────────
+for port in 8000 5173; do
+  pid=$(lsof -ti:"$port" 2>/dev/null) || true
+  if [ -n "$pid" ]; then
+    warn "Port $port in use (PID $pid) — killing..."
+    kill "$pid" 2>/dev/null || true
+    sleep 0.5
+  fi
+done
+
+# ── 0b. Create default .env if missing ───────────────────────────────────────
+if [ ! -f "$BACKEND/.env" ]; then
+  warn ".env not found — creating default .env (edit to add API keys)..."
+  cat > "$BACKEND/.env" <<'EOF'
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.2
+GEMINI_API_KEY=
+GOOGLE_API_KEY=
+EOF
+  info "Created $BACKEND/.env with defaults."
+fi
+
 # ── 1. Check / install Node deps ─────────────────────────────────────────────
 info "Checking frontend dependencies..."
 if [ ! -d "$FRONTEND/node_modules" ]; then

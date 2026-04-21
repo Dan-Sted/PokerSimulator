@@ -1566,17 +1566,17 @@ export default function PokerTable() {
           }
           finalStacks[potWinner] = (finalStacks[potWinner] ?? 0) + amount;
           allWins.push({ name: potWinner, amount });
-          setPlayerWins(prev => ({ ...prev, [potWinner]: (prev[potWinner] ?? 0) + 1 }));
           setGameLog(prev => [...prev, {
             player: potWinner, street: 'result', action: 'wins',
             amount, reasoning: `${potWinner === HUMAN_NAME ? 'Win' : 'Wins'} pot of $${amount}.`,
           }]);
         }
-        // Record round win for the winner of the main (last/largest) pot
-        const mainWinner = allWins[allWins.length - 1]?.name;
-        if (mainWinner) {
-          setPlayerStats(prev => ({ ...prev, [mainWinner]: { ...prev[mainWinner], matchesPlayed: prev[mainWinner]?.matchesPlayed ?? 0, roundsWon: (prev[mainWinner]?.roundsWon ?? 0) + 1, tournamentsWon: prev[mainWinner]?.tournamentsWon ?? 0 } }));
-        }
+        // Increment win counter once per unique winner across all side pots
+        const uniqueWinners = [...new Set(allWins.map(w => w.name))];
+        uniqueWinners.forEach(w => {
+          setPlayerWins(prev => ({ ...prev, [w]: (prev[w] ?? 0) + 1 }));
+          setPlayerStats(prev => ({ ...prev, [w]: { ...prev[w], matchesPlayed: prev[w]?.matchesPlayed ?? 0, roundsWon: (prev[w]?.roundsWon ?? 0) + 1, tournamentsWon: prev[w]?.tournamentsWon ?? 0 } }));
+        });
         setStacks(finalStacks);
         setPot(0);
         // Merge multiple pots won by the same player into one banner entry
@@ -1587,6 +1587,28 @@ export default function PokerTable() {
           }, {})
         );
         setLastWinner(mergedWins);
+        setActivePlayer(null);
+        setGameRunning(false);
+        setRoundComplete(true);
+      } else if (winners.length > 1) {
+        // Tie — split pot equally among winners
+        const share = Math.floor(result.pot / winners.length);
+        const remainder = result.pot - share * winners.length;
+        setStacks(prev => {
+          const next = { ...prev };
+          winners.forEach((w, i) => { next[w] = (next[w] ?? 0) + share + (i === 0 ? remainder : 0); });
+          return next;
+        });
+        setPot(0);
+        setLastWinner(winners.map((w, i) => ({ name: w, amount: share + (i === 0 ? remainder : 0), split: true })));
+        winners.forEach(w => {
+          setPlayerWins(prev => ({ ...prev, [w]: (prev[w] ?? 0) + 1 }));
+          setPlayerStats(prev => ({ ...prev, [w]: { ...prev[w], matchesPlayed: prev[w]?.matchesPlayed ?? 0, roundsWon: (prev[w]?.roundsWon ?? 0) + 1, tournamentsWon: prev[w]?.tournamentsWon ?? 0 } }));
+        });
+        setGameLog(prev => [...prev, {
+          player: winners.join(' & '), street: 'result', action: 'split',
+          amount: share, reasoning: `Tie — pot split: ${winners.join(' & ')} each win $${share}.`,
+        }]);
         setActivePlayer(null);
         setGameRunning(false);
         setRoundComplete(true);
@@ -1970,11 +1992,22 @@ export default function PokerTable() {
                   </>
                 ) : (
                   <>
-                    {lastWinner.map(({ name, amount }, i) => (
-                      <p key={i} className="text-amber-300 font-bold text-base">
-                        🏆 {name} {name === HUMAN_NAME ? 'win' : 'wins'} ${amount}!
-                      </p>
-                    ))}
+                    {lastWinner[0]?.split ? (
+                      <>
+                        <p className="text-blue-300 font-bold text-base">
+                          🤝 Pot split — {lastWinner.map(w => w.name).join(' & ')} tie!
+                        </p>
+                        <p className="text-blue-400/80 text-sm">
+                          Each wins ${lastWinner[0].amount}
+                        </p>
+                      </>
+                    ) : (
+                      lastWinner.map(({ name, amount }, i) => (
+                        <p key={i} className="text-amber-300 font-bold text-base">
+                          🏆 {name} {name === HUMAN_NAME ? 'win' : 'wins'} ${amount}!
+                        </p>
+                      ))
+                    )}
                     <p className="text-amber-600/80 text-xs mt-0.5">
                       {autoContinue
                         ? 'Next round starting automatically…'

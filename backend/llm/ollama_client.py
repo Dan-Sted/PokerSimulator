@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 from types import SimpleNamespace
 
 load_dotenv()
-OLLAMA_URL = os.getenv("OLLAMA_URL")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
 
 class OllamaError(Exception):
     pass

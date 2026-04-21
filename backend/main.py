@@ -332,7 +332,7 @@ _HAND_NAMES = [
 
 def _rank_five(cards):
     """Return a comparable tuple for exactly 5 cards (objects with .rank/.suit)."""
-    vals  = sorted([_RANK_VAL[c.rank] for c in cards], reverse=True)
+    vals  = sorted([c.rank for c in cards], reverse=True)
     suits = [c.suit for c in cards]
 
     is_flush    = len(set(suits)) == 1
